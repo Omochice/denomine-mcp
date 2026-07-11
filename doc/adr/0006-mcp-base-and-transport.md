@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed — 2026-07-12. Carries forward the former ADR 0006. Stays `Proposed` until the compile proof-of-concept resolves it.
+Accepted — 2026-07-12. Carries forward the former ADR 0006. The `deno compile` proof-of-concept passed — `@modelcontextprotocol/sdk` 1.29.0 compiles into a single binary that answers the MCP `initialize` / `tools/list` / `tools/call` handshake over stdio — resolving the contingency in favour of Option 1.
 
 ## Context
 
