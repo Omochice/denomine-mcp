@@ -1,0 +1,44 @@
+# Verification harness: a throwaway Redmine 6.0 instance the MCP server can be
+# pointed at during development. Not a production or deployment artifact.
+#
+#   docker compose up -d
+#   open http://localhost:3000   (first login: admin / admin, forced to change)
+#
+# Redmine 6.0 requires PostgreSQL 14+; 16 is used here for headroom.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: redmine
+      POSTGRES_PASSWORD: redmine
+      POSTGRES_DB: redmine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # Gate Redmine's startup on the database actually accepting connections,
+    # otherwise the first migration run races the database boot and fails.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U redmine -d redmine"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redmine:
+    image: redmine:6.0
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      REDMINE_DB_POSTGRES: db
+      REDMINE_DB_USERNAME: redmine
+      REDMINE_DB_PASSWORD: redmine
+      REDMINE_DB_DATABASE: redmine
+      # Pinned so sessions survive a container restart during a verification run.
+      REDMINE_SECRET_KEY_BASE: denomine-mcp-verification-only
+    volumes:
+      - redmine-files:/usr/src/redmine/files
+
+volumes:
+  db-data:
+  redmine-files:
