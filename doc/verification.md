@@ -33,6 +33,21 @@ Register the printed key with the `login` subcommand (see [ADR-0004](./adr/0004-
 denomine-mcp login --endpoint http://localhost:3000
 ```
 
+## Seed issue prerequisites
+
+A fresh Redmine has no trackers, statuses, or priorities, and an issue needs a project, so issue operations fail until these exist.
+Load the default configuration data and create one project (replace `<key>` with the API key from above):
+
+```sh
+docker compose exec redmine sh -c \
+  'SECRET_KEY_BASE="$REDMINE_SECRET_KEY_BASE" REDMINE_LANG=en bundle exec rake redmine:load_default_data'
+
+curl -s -X POST -H "X-Redmine-API-Key: <key>" -H "Content-Type: application/json" \
+  -d '{"project":{"name":"Demo","identifier":"demo"}}' http://localhost:3000/projects.json
+```
+
+The default data seeds tracker `1` (Bug), status `1` (New), and priority `2` (Normal), which the issue integration test uses.
+
 ## Stop
 
 ```sh
