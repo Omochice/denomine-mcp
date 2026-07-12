@@ -62,3 +62,29 @@ export interface IssuePort {
   update(id: number, attrs: IssueUpdate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;
 }
+
+/** Attributes of a wiki page; a page is identified by its project and title. */
+export type WikiContent = {
+  title: string;
+  text: string;
+  comments?: string;
+  version?: number;
+  parentTitle?: string;
+};
+
+/**
+ * The wiki-page operations the tool layer depends on. Wiki pages are keyed by
+ * project id and title (not a numeric id), and `create`/`update`/`delete` carry
+ * no body, so they resolve to `null`.
+ */
+export interface WikiPort {
+  list(projectId: number): Promise<RedmineResult<unknown>>;
+  show(
+    projectId: number,
+    title: string,
+    version?: number,
+  ): Promise<RedmineResult<unknown>>;
+  create(projectId: number, wiki: WikiContent): Promise<RedmineResult<null>>;
+  update(projectId: number, wiki: WikiContent): Promise<RedmineResult<null>>;
+  delete(projectId: number, title: string): Promise<RedmineResult<null>>;
+}
