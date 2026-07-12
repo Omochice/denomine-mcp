@@ -1,5 +1,6 @@
 import { Command } from "@cliffy/command";
-import { notImplemented } from "./not-implemented.ts";
+import { openKeyring } from "../keyring/mod.ts";
+import { runServe } from "./run.ts";
 
 /**
  * `serve --endpoint <url> [--readonly]`: run the stdio MCP server for a Redmine
@@ -14,4 +15,9 @@ export const serveCommand = new Command()
     "--readonly",
     "Expose only read actions; create, update, and delete are pruned.",
   )
-  .action(() => notImplemented("serve"));
+  .action((options) =>
+    runServe(
+      { endpoint: options.endpoint, readonly: options.readonly },
+      openKeyring(),
+    )
+  );

@@ -1,5 +1,6 @@
 import { Command } from "@cliffy/command";
-import { notImplemented } from "./not-implemented.ts";
+import { openKeyring } from "../keyring/mod.ts";
+import { runLogout } from "./run.ts";
 
 /**
  * `logout --endpoint <url>`: delete the stored API key for an endpoint from the
@@ -10,4 +11,7 @@ export const logoutCommand = new Command()
   .option("--endpoint <url:string>", "Redmine endpoint URL.", {
     required: true,
   })
-  .action(() => notImplemented("logout"));
+  .action(async (options) => {
+    const account = await runLogout(options.endpoint, openKeyring());
+    console.error(`Removed API key for ${account}.`);
+  });
