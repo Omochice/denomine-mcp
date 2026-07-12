@@ -2,9 +2,25 @@ import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
 import { Client } from "npm:@modelcontextprotocol/sdk@1.29.0/client/index.js";
 import { InMemoryTransport } from "npm:@modelcontextprotocol/sdk@1.29.0/inMemory.js";
 import { buildServer } from "./server.ts";
-import { FakeIssuePort } from "../redmine/fake.ts";
+import { FakeIssuePort, FakeWikiPort } from "../redmine/fake.ts";
 import { issuesTool } from "../tools/issues/mod.ts";
+import { wikiTool } from "../tools/wiki/mod.ts";
+import type { ToolModule } from "./tool.ts";
 import type { Mode } from "../tools/mode.ts";
+
+async function connectTools(tools: ToolModule[], mode: Mode): Promise<Client> {
+  const server = buildServer(tools, mode);
+  const [clientTransport, serverTransport] = InMemoryTransport
+    .createLinkedPair();
+  const client = new Client({ name: "test", version: "0" }, {
+    capabilities: {},
+  });
+  await Promise.all([
+    server.connect(serverTransport),
+    client.connect(clientTransport),
+  ]);
+  return client;
+}
 
 async function connect(mode: Mode): Promise<Client> {
   const server = buildServer([issuesTool(new FakeIssuePort())], mode);
@@ -104,6 +120,43 @@ Deno.test("readonly mode advertises only read actions", async () => {
       },
     }) as CallResult;
     assertEquals(write.isError, true);
+  } finally {
+    await client.close();
+  }
+});
+
+Deno.test("server advertises every registered tool and dispatches wiki CRUD", async () => {
+  const client = await connectTools(
+    [issuesTool(new FakeIssuePort()), wikiTool(new FakeWikiPort())],
+    "full",
+  );
+  try {
+    const { tools } = await client.listTools();
+    assertEquals(
+      tools.map((tool: { name: string }) => tool.name).sort(),
+      ["redmine_issues", "redmine_wiki_pages"],
+    );
+
+    const created = await client.callTool({
+      name: "redmine_wiki_pages",
+      arguments: { action: "create", projectId: 1, title: "Home", text: "hi" },
+    }) as CallResult;
+    assert(created.isError !== true);
+
+    const shown = await client.callTool({
+      name: "redmine_wiki_pages",
+      arguments: { action: "show", projectId: 1, title: "Home" },
+    }) as CallResult;
+    const { wiki_page } = JSON.parse(textOf(shown)) as {
+      wiki_page: { text: string };
+    };
+    assertEquals(wiki_page.text, "hi");
+
+    const deleted = await client.callTool({
+      name: "redmine_wiki_pages",
+      arguments: { action: "delete", projectId: 1, title: "Home" },
+    }) as CallResult;
+    assert(deleted.isError !== true);
   } finally {
     await client.close();
   }

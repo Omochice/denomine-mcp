@@ -1,8 +1,10 @@
 import { StdioServerTransport } from "npm:@modelcontextprotocol/sdk@1.29.0/server/stdio.js";
 import { RedmineClient } from "../redmine/client.ts";
+import { WikiClient } from "../redmine/wiki_client.ts";
 import type { RedmineContext } from "../redmine/port.ts";
 import { buildServer } from "../mcp/server.ts";
 import { issuesTool } from "../tools/issues/mod.ts";
+import { wikiTool } from "../tools/wiki/mod.ts";
 import type { Mode } from "../tools/mode.ts";
 import type { Keyring } from "../keyring/port.ts";
 import { canonicalizeEndpoint } from "./endpoint.ts";
@@ -63,6 +65,9 @@ export async function runServe(
 ): Promise<void> {
   const context = await resolveContext(options.endpoint, keyring);
   const mode: Mode = options.readonly ? "readonly" : "full";
-  const server = buildServer([issuesTool(new RedmineClient(context))], mode);
+  const server = buildServer(
+    [issuesTool(new RedmineClient(context)), wikiTool(new WikiClient(context))],
+    mode,
+  );
   await server.connect(new StdioServerTransport());
 }
