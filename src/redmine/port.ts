@@ -88,3 +88,37 @@ export interface WikiPort {
   update(projectId: number, wiki: WikiContent): Promise<RedmineResult<null>>;
   delete(projectId: number, title: string): Promise<RedmineResult<null>>;
 }
+
+export type VersionStatus = "open" | "locked" | "closed";
+
+export type VersionSharing =
+  | "none"
+  | "descendants"
+  | "hierarchy"
+  | "tree"
+  | "system";
+
+/** Attributes of a project version; `dueDate` is an ISO date (`YYYY-MM-DD`). */
+export type VersionCreate = {
+  name: string;
+  description?: string;
+  status?: VersionStatus;
+  dueDate?: string;
+  sharing?: VersionSharing;
+  wikiPageTitle?: string;
+};
+
+export type VersionUpdate = Partial<VersionCreate>;
+
+/**
+ * The version operations the tool layer depends on. A version is listed and
+ * created under a project, but shown, updated, and deleted by its own numeric
+ * id; `create`/`update`/`delete` carry no body, so they resolve to `null`.
+ */
+export interface VersionPort {
+  list(projectId: number): Promise<RedmineResult<unknown>>;
+  show(id: number): Promise<RedmineResult<unknown>>;
+  create(projectId: number, attrs: VersionCreate): Promise<RedmineResult<null>>;
+  update(id: number, attrs: VersionUpdate): Promise<RedmineResult<null>>;
+  delete(id: number): Promise<RedmineResult<null>>;
+}
