@@ -3,10 +3,11 @@ import { Client } from "npm:@modelcontextprotocol/sdk@1.29.0/client/index.js";
 import { InMemoryTransport } from "npm:@modelcontextprotocol/sdk@1.29.0/inMemory.js";
 import { buildServer } from "./server.ts";
 import { FakeIssuePort } from "../redmine/fake.ts";
-import type { Mode } from "../tools/issues/schema.ts";
+import { issuesTool } from "../tools/issues/mod.ts";
+import type { Mode } from "../tools/mode.ts";
 
 async function connect(mode: Mode): Promise<Client> {
-  const server = buildServer(new FakeIssuePort(), mode);
+  const server = buildServer([issuesTool(new FakeIssuePort())], mode);
   const [clientTransport, serverTransport] = InMemoryTransport
     .createLinkedPair();
   const client = new Client({ name: "test", version: "0" }, {

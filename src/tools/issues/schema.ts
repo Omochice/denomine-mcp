@@ -1,4 +1,5 @@
 import * as v from "@valibot/valibot";
+import type { Mode } from "../mode.ts";
 
 export const listInput = v.object({
   action: v.literal("list"),
@@ -54,9 +55,6 @@ export type IssueToolInput =
   | v.InferOutput<typeof createInput>
   | v.InferOutput<typeof updateInput>
   | v.InferOutput<typeof deleteInput>;
-
-/** `full` advertises every action; `readonly` drops the mutating ones. */
-export type Mode = "full" | "readonly";
 
 /**
  * Builds the issue-tool argument schema for the given mode.

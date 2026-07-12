@@ -5,44 +5,44 @@ import {
   ListToolsRequestSchema,
 } from "npm:@modelcontextprotocol/sdk@1.29.0/types.js";
 import * as v from "@valibot/valibot";
-import { toJsonSchema } from "@valibot/to-json-schema";
-import type { IssuePort } from "../redmine/port.ts";
-import { handleIssue, type ToolResponse } from "../tools/issues/handler.ts";
-import { issueInputSchema, type Mode } from "../tools/issues/schema.ts";
-
-const ISSUES_TOOL = "redmine_issues";
+import type { Mode } from "../tools/mode.ts";
+import type { ToolResponse } from "../tools/response.ts";
+import { toObjectSchema, type ToolModule } from "./tool.ts";
 
 /**
- * Builds the MCP server exposing the Redmine issue tool over the given port.
+ * Builds the MCP server exposing the given resource tools over stdio.
  *
- * @param port The issue backend (real or fake).
- * @param mode `readonly` advertises only the read actions (ADR-0001).
+ * @param tools The per-resource tool modules to advertise and dispatch.
+ * @param mode `readonly` advertises only the read actions of each tool (ADR-0001).
  */
-export function buildServer(port: IssuePort, mode: Mode): Server {
+export function buildServer(tools: ToolModule[], mode: Mode): Server {
   const server = new Server(
     { name: "denomine-mcp", version: "0.0.0" },
     { capabilities: { tools: {} } },
   );
-  const schema = issueInputSchema(mode);
+  const byName = new Map(tools.map((tool) => [tool.name, tool]));
 
   server.setRequestHandler(ListToolsRequestSchema, () => ({
-    tools: [{
-      name: ISSUES_TOOL,
-      description:
-        "Create, read, update, and delete Redmine issues. Choose the operation with `action`.",
-      inputSchema: toObjectSchema(schema),
-    }],
+    tools: tools.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      inputSchema: toObjectSchema(tool.schema(mode)),
+    })),
   }));
 
   server.setRequestHandler(
     CallToolRequestSchema,
     (request: CallToolRequest): Promise<ToolResponse> => {
-      if (request.params.name !== ISSUES_TOOL) {
+      const tool = byName.get(request.params.name);
+      if (tool === undefined) {
         return Promise.resolve(
           toolError(`unknown tool: ${request.params.name}`),
         );
       }
-      const parsed = v.safeParse(schema, request.params.arguments ?? {});
+      const parsed = v.safeParse(
+        tool.schema(mode),
+        request.params.arguments ?? {},
+      );
       if (!parsed.success) {
         return Promise.resolve(
           toolError(
@@ -52,34 +52,11 @@ export function buildServer(port: IssuePort, mode: Mode): Server {
           ),
         );
       }
-      return handleIssue(port, parsed.output);
+      return tool.handle(parsed.output);
     },
   );
 
   return server;
-}
-
-/**
- * Wraps the discriminated-union JSON Schema, which `toJsonSchema` emits as a
- * top-level `oneOf`, into the `type: "object"` schema MCP's `inputSchema`
- * requires. The advertised `action` enum is read back from the branches so it
- * cannot drift from the schema.
- */
-function toObjectSchema(
-  schema: Parameters<typeof toJsonSchema>[0],
-): { type: "object"; properties: Record<string, unknown>; oneOf: unknown[] } {
-  const json = toJsonSchema(schema) as {
-    oneOf?: Array<{ properties?: { action?: { const?: unknown } } }>;
-  };
-  const branches = json.oneOf ?? [];
-  const actions = branches
-    .map((branch) => branch.properties?.action?.const)
-    .filter((action): action is string => typeof action === "string");
-  return {
-    type: "object",
-    properties: { action: { type: "string", enum: actions } },
-    oneOf: branches,
-  };
 }
 
 function toolError(message: string): ToolResponse {
