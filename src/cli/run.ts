@@ -42,6 +42,12 @@ export async function runLogout(
   return account;
 }
 
+/** Returns the endpoints that have a stored API key, sorted for stable output. */
+export async function runList(keyring: Keyring): Promise<string[]> {
+  const endpoints = await keyring.list();
+  return endpoints.sort();
+}
+
 /**
  * Resolves the connection context for an endpoint from the keyring, failing with
  * a directive to run `login` when no key is stored.

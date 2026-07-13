@@ -1,6 +1,6 @@
 import { assertEquals, assertRejects } from "jsr:@std/assert@1.0.18";
 import { FakeKeyring } from "../keyring/fake.ts";
-import { resolveContext, runLogin, runLogout } from "./run.ts";
+import { resolveContext, runList, runLogin, runLogout } from "./run.ts";
 
 Deno.test("runLogin stores the trimmed key under the canonical account", async () => {
   const keyring = new FakeKeyring();
@@ -39,4 +39,19 @@ Deno.test("runLogout removes the stored key", async () => {
   const keyring = new FakeKeyring({ "https://r.example.com": "k" });
   await runLogout("https://r.example.com/", keyring);
   assertEquals(await keyring.get("https://r.example.com"), undefined);
+});
+
+Deno.test("runList returns the stored endpoints sorted", async () => {
+  const keyring = new FakeKeyring({
+    "https://b.example.com": "k2",
+    "https://a.example.com": "k1",
+  });
+  assertEquals(await runList(keyring), [
+    "https://a.example.com",
+    "https://b.example.com",
+  ]);
+});
+
+Deno.test("runList returns an empty list when nothing is stored", async () => {
+  assertEquals(await runList(new FakeKeyring()), []);
 });
