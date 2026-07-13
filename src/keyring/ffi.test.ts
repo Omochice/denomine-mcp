@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 import { FfiKeyring } from "./ffi.ts";
 
 /**
@@ -33,10 +33,18 @@ Deno.test({
     await keyring.set(account, secret);
     try {
       assertEquals(await keyring.get(account), secret);
+      assert(
+        (await keyring.list()).includes(account),
+        "list should include the stored account",
+      );
     } finally {
       await keyring.delete(account);
     }
 
     assertEquals(await keyring.get(account), undefined);
+    assert(
+      !(await keyring.list()).includes(account),
+      "list should not include the deleted account",
+    );
   },
 });

@@ -13,4 +13,6 @@ export interface Keyring {
   set(account: string, secret: string): Promise<void>;
   /** Removes the stored secret for the account; a no-op if none exists. */
   delete(account: string): Promise<void>;
+  /** Returns the accounts (endpoint URLs) that currently have a stored secret. */
+  list(): Promise<string[]>;
 }

@@ -11,6 +11,7 @@ const SYMBOLS = {
   keyring_set: { parameters: ["buffer", "buffer", "buffer"], result: "i32" },
   keyring_get: { parameters: ["buffer", "buffer"], result: "pointer" },
   keyring_delete: { parameters: ["buffer", "buffer"], result: "i32" },
+  keyring_list: { parameters: ["buffer"], result: "pointer" },
   keyring_string_free: { parameters: ["pointer"], result: "void" },
 } as const satisfies Deno.ForeignLibraryInterface;
 
@@ -96,5 +97,15 @@ export class FfiKeyring implements Keyring {
       );
     }
     return Promise.resolve();
+  }
+
+  list(): Promise<string[]> {
+    const ptr = this.#lib.symbols.keyring_list(cString(SERVICE));
+    if (ptr === null) {
+      return Promise.reject(new Error("keyring_list failed"));
+    }
+    const raw = new Deno.UnsafePointerView(ptr).getCString();
+    this.#lib.symbols.keyring_string_free(ptr);
+    return Promise.resolve(raw.split("\n").filter((account) => account !== ""));
   }
 }

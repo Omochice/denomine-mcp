@@ -25,4 +25,8 @@ export class FakeKeyring implements Keyring {
     this.#store.delete(account);
     return Promise.resolve();
   }
+
+  list(): Promise<string[]> {
+    return Promise.resolve([...this.#store.keys()]);
+  }
 }
