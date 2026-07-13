@@ -8,3 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 keyring = { version = "3", features = ["apple-native"] }
+# Enumeration is not exposed by `keyring`, so `keyring_list` queries the macOS
+# keychain through the Security framework directly. Pinned to the major version
+# already resolved via keyring's `apple-native` feature to avoid a second copy.
+security-framework = "3"

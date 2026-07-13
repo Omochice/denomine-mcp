@@ -4,6 +4,13 @@
 use std::ffi::{c_char, c_int, CStr, CString};
 use std::ptr;
 
+use security_framework::item::{ItemClass, ItemSearchOptions, Limit};
+
+/// `errSecItemNotFound` from the macOS Security framework. The keychain reports
+/// an empty match as this error rather than an empty result set, so we treat it
+/// as "no accounts" instead of a failure.
+const ERR_SEC_ITEM_NOT_FOUND: i32 = -25300;
+
 /// Convert a borrowed C string into an owned Rust `String`.
 ///
 /// # Safety
@@ -69,6 +76,55 @@ pub extern "C" fn keyring_delete(service: *const c_char, account: *const c_char)
         Err(keyring::Error::NoEntry) => 0,
         Err(_) => -2,
     }
+}
+
+/// List the accounts stored under `service`, one per line ("\n"-separated).
+/// Returns a heap C string the caller frees with `keyring_string_free`, an
+/// empty string if there are none, or null on error.
+#[no_mangle]
+pub extern "C" fn keyring_list(service: *const c_char) -> *mut c_char {
+    let Some(service) = (unsafe { to_string(service) }) else {
+        return ptr::null_mut();
+    };
+
+    // The `keyring` crate cannot enumerate items, so we query the macOS keychain
+    // directly. `ItemSearchOptions` offers no per-service filter, so we request
+    // every generic-password's attributes and match the service ("svce") in
+    // code. Only attributes are loaded, not the passwords, to avoid unlock
+    // prompts for secrets we never read.
+    let results = ItemSearchOptions::new()
+        .class(ItemClass::generic_password())
+        .load_attributes(true)
+        .limit(Limit::All)
+        .search();
+    let results = match results {
+        Ok(results) => results,
+        Err(error) if error.code() == ERR_SEC_ITEM_NOT_FOUND => Vec::new(),
+        Err(_) => return ptr::null_mut(),
+    };
+
+    let mut accounts: Vec<String> = Vec::new();
+    for result in results {
+        let Some(attributes) = result.simplify_dict() else {
+            continue;
+        };
+        if attributes.get("svce").map(String::as_str) != Some(service.as_str()) {
+            continue;
+        }
+        // Skip items without an account, and dedupe so a duplicated keychain
+        // entry never yields the same endpoint twice.
+        if let Some(account) = attributes.get("acct") {
+            if !accounts.iter().any(|existing| existing == account) {
+                accounts.push(account.clone());
+            }
+        }
+    }
+
+    // Endpoint URLs never contain a newline, so joining on "\n" stays
+    // unambiguous; an empty `accounts` yields an empty string.
+    CString::new(accounts.join("\n"))
+        .map(CString::into_raw)
+        .unwrap_or(ptr::null_mut())
 }
 
 /// Free a C string previously returned by `keyring_get`.
