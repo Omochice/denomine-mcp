@@ -9,6 +9,18 @@ import type {
 } from "./port.ts";
 
 /**
+ * Adapts a port query to the library query. The tool speaks an ISO-date string
+ * (`YYYY-MM-DD`) for `dueDate`, while `@omochice/redmine` expects a `Date`,
+ * which its validator then serializes back to `YYYY-MM-DD` in UTC.
+ */
+function toLibraryQuery<T extends { dueDate?: string }>(
+  attrs: T,
+): Omit<T, "dueDate"> & { dueDate?: Date } {
+  const { dueDate, ...rest } = attrs;
+  return dueDate === undefined ? rest : { ...rest, dueDate: new Date(dueDate) };
+}
+
+/**
  * Real {@link VersionPort} backed by `@omochice/redmine`.
  *
  * Each operation branches the library's Result explicitly (ADR-0002).
@@ -41,7 +53,10 @@ export class VersionClient implements VersionPort {
     projectId: number,
     attrs: VersionCreate,
   ): Promise<RedmineResult<null>> {
-    const result = await this.#redmine.version.create(projectId, attrs);
+    const result = await this.#redmine.version.create(
+      projectId,
+      toLibraryQuery(attrs),
+    );
     if (result.isErr()) {
       return { ok: false, error: await errorFromCause(result.error) };
     }
@@ -52,7 +67,10 @@ export class VersionClient implements VersionPort {
     id: number,
     attrs: VersionUpdate,
   ): Promise<RedmineResult<null>> {
-    const result = await this.#redmine.version.update(id, attrs);
+    const result = await this.#redmine.version.update(
+      id,
+      toLibraryQuery(attrs),
+    );
     if (result.isErr()) {
       return { ok: false, error: await errorFromCause(result.error) };
     }
