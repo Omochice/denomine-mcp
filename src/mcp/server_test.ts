@@ -104,27 +104,34 @@ Deno.test("MCP server drives issue CRUD over an in-memory transport", async () =
   }
 });
 
-Deno.test("readonly mode advertises only read actions", async () => {
-  const client = await connect("readonly");
+Deno.test("readonly mode advertises only read actions for every tool", async () => {
+  const client = await connectTools(
+    [
+      issuesTool(new FakeIssuePort()),
+      wikiTool(new FakeWikiPort()),
+      versionTool(new FakeVersionPort()),
+    ],
+    "readonly",
+  );
   try {
     const { tools } = await client.listTools();
-    const schema = tools[0].inputSchema as {
-      properties: { action: { enum: string[] } };
-    };
-    assertEquals(schema.properties.action.enum, ["list", "show"]);
+    for (
+      const tool of tools as {
+        inputSchema: { properties: { action: { enum: string[] } } };
+      }[]
+    ) {
+      assertEquals(tool.inputSchema.properties.action.enum, ["list", "show"]);
+    }
 
-    const write = await client.callTool({
-      name: "redmine_issues",
-      arguments: {
-        action: "create",
-        projectId: 1,
-        trackerId: 1,
-        statusId: 1,
-        priorityId: 2,
-        subject: "denied",
-      },
-    }) as CallResult;
-    assertEquals(write.isError, true);
+    for (
+      const name of ["redmine_issues", "redmine_wiki_pages", "redmine_versions"]
+    ) {
+      const write = await client.callTool({
+        name,
+        arguments: { action: "create" },
+      }) as CallResult;
+      assertEquals(write.isError, true, `${name} create should be rejected`);
+    }
   } finally {
     await client.close();
   }
