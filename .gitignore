@@ -1,3 +1,6 @@
 # Rust build artifacts for the keyring cdylib; the crate source under ffi/ is
 # tracked, its compiled output is not.
 /ffi/target/
+
+# The `compile` task's single-binary output.
+/denomine-mcp
