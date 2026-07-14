@@ -25,7 +25,7 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: tools.map((tool) => ({
       name: tool.name,
-      description: tool.description,
+      description: tool.description(mode),
       inputSchema: toObjectSchema(tool.schema(mode)),
     })),
   }));

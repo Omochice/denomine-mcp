@@ -1,5 +1,6 @@
 import type { IssuePort } from "../../redmine/port.ts";
 import type { ToolModule } from "../../mcp/tool.ts";
+import { describeCrudTool } from "../describe.ts";
 import { handleIssue } from "./handler.ts";
 import { issueInputSchema, type IssueToolInput } from "./schema.ts";
 
@@ -11,8 +12,7 @@ import { issueInputSchema, type IssueToolInput } from "./schema.ts";
 export function issuesTool(port: IssuePort): ToolModule {
   return {
     name: "redmine_issues",
-    description:
-      "Create, read, update, and delete Redmine issues. Choose the operation with `action`.",
+    description: (mode) => describeCrudTool("issues", mode),
     schema: (mode) => issueInputSchema(mode),
     handle: (input) => handleIssue(port, input as IssueToolInput),
   };

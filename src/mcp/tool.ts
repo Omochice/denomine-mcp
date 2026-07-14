@@ -10,7 +10,7 @@ import type { ToolResponse } from "../tools/response.ts";
  */
 export type ToolModule = {
   name: string;
-  description: string;
+  description(mode: Mode): string;
   schema(mode: Mode): v.GenericSchema;
   handle(input: unknown): Promise<ToolResponse>;
 };

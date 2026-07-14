@@ -117,10 +117,15 @@ Deno.test("readonly mode advertises only read actions for every tool", async () 
     const { tools } = await client.listTools();
     for (
       const tool of tools as {
+        description: string;
         inputSchema: { properties: { action: { enum: string[] } } };
       }[]
     ) {
       assertEquals(tool.inputSchema.properties.action.enum, ["list", "show"]);
+      assert(
+        !/create|update|delete/i.test(tool.description),
+        `readonly description should not mention writes: ${tool.description}`,
+      );
     }
 
     for (
@@ -152,6 +157,12 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
       tools.map((tool: { name: string }) => tool.name).sort(),
       ["redmine_issues", "redmine_versions", "redmine_wiki_pages"],
     );
+    for (const tool of tools as { description: string }[]) {
+      assert(
+        /create.*delete/i.test(tool.description),
+        `full-mode description should mention writes: ${tool.description}`,
+      );
+    }
 
     const wikiCreated = await client.callTool({
       name: "redmine_wiki_pages",

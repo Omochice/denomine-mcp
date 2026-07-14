@@ -1,5 +1,6 @@
 import type { VersionPort } from "../../redmine/port.ts";
 import type { ToolModule } from "../../mcp/tool.ts";
+import { describeCrudTool } from "../describe.ts";
 import { handleVersion } from "./handler.ts";
 import { versionInputSchema, type VersionToolInput } from "./schema.ts";
 
@@ -11,8 +12,8 @@ import { versionInputSchema, type VersionToolInput } from "./schema.ts";
 export function versionTool(port: VersionPort): ToolModule {
   return {
     name: "redmine_versions",
-    description:
-      "Create, read, update, and delete Redmine project versions (milestones). Choose the operation with `action`.",
+    description: (mode) =>
+      describeCrudTool("project versions (milestones)", mode),
     schema: (mode) => versionInputSchema(mode),
     handle: (input) => handleVersion(port, input as VersionToolInput),
   };

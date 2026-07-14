@@ -1,5 +1,6 @@
 import type { WikiPort } from "../../redmine/port.ts";
 import type { ToolModule } from "../../mcp/tool.ts";
+import { describeCrudTool } from "../describe.ts";
 import { handleWiki } from "./handler.ts";
 import { wikiInputSchema, type WikiToolInput } from "./schema.ts";
 
@@ -11,8 +12,7 @@ import { wikiInputSchema, type WikiToolInput } from "./schema.ts";
 export function wikiTool(port: WikiPort): ToolModule {
   return {
     name: "redmine_wiki_pages",
-    description:
-      "Create, read, update, and delete Redmine wiki pages. Choose the operation with `action`.",
+    description: (mode) => describeCrudTool("wiki pages", mode),
     schema: (mode) => wikiInputSchema(mode),
     handle: (input) => handleWiki(port, input as WikiToolInput),
   };
