@@ -122,3 +122,34 @@ export interface VersionPort {
   update(id: number, attrs: VersionUpdate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;
 }
+
+export type RelationType =
+  | "relates"
+  | "duplicates"
+  | "duplicated"
+  | "blocks"
+  | "blocked"
+  | "precedes"
+  | "follows"
+  | "copied_to"
+  | "copied_from";
+
+/** Attributes of a new issue relation from the source issue to `issueToId`. */
+export type RelationCreate = {
+  issueToId: number;
+  relationType: RelationType;
+  delay?: number;
+};
+
+/**
+ * The issue-relation operations the tool layer depends on. Relations are listed
+ * and created under a source issue, but shown and deleted by their own id;
+ * Redmine has no relation update. `create`/`delete` carry no body, so they
+ * resolve to `null`.
+ */
+export interface RelationPort {
+  list(issueId: number): Promise<RedmineResult<unknown>>;
+  show(id: number): Promise<RedmineResult<unknown>>;
+  create(issueId: number, attrs: RelationCreate): Promise<RedmineResult<null>>;
+  delete(id: number): Promise<RedmineResult<null>>;
+}
