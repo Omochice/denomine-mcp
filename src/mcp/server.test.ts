@@ -4,12 +4,14 @@ import { InMemoryTransport } from "npm:@modelcontextprotocol/sdk@1.29.0/inMemory
 import { buildServer } from "./server.ts";
 import {
   FakeIssuePort,
+  FakeRelationPort,
   FakeVersionPort,
   FakeWikiPort,
 } from "../redmine/fake.ts";
 import { issuesTool } from "../tools/issues/mod.ts";
 import { wikiTool } from "../tools/wiki/mod.ts";
 import { versionTool } from "../tools/version/mod.ts";
+import { relationTool } from "../tools/relation/mod.ts";
 import type { ToolModule } from "./tool.ts";
 import type { Mode } from "../tools/mode.ts";
 
@@ -110,6 +112,7 @@ Deno.test("readonly mode advertises only read actions for every tool", async () 
       issuesTool(new FakeIssuePort()),
       wikiTool(new FakeWikiPort()),
       versionTool(new FakeVersionPort()),
+      relationTool(new FakeRelationPort()),
     ],
     "readonly",
   );
@@ -129,7 +132,12 @@ Deno.test("readonly mode advertises only read actions for every tool", async () 
     }
 
     for (
-      const name of ["redmine_issues", "redmine_wiki_pages", "redmine_versions"]
+      const name of [
+        "redmine_issues",
+        "redmine_wiki_pages",
+        "redmine_versions",
+        "redmine_issue_relations",
+      ]
     ) {
       const write = await client.callTool({
         name,
@@ -148,6 +156,7 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
       issuesTool(new FakeIssuePort()),
       wikiTool(new FakeWikiPort()),
       versionTool(new FakeVersionPort()),
+      relationTool(new FakeRelationPort()),
     ],
     "full",
   );
@@ -155,7 +164,12 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
     const { tools } = await client.listTools();
     assertEquals(
       tools.map((tool: { name: string }) => tool.name).sort(),
-      ["redmine_issues", "redmine_versions", "redmine_wiki_pages"],
+      [
+        "redmine_issue_relations",
+        "redmine_issues",
+        "redmine_versions",
+        "redmine_wiki_pages",
+      ],
     );
     for (const tool of tools as { description: string }[]) {
       assert(
