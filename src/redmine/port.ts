@@ -127,6 +127,38 @@ export interface VersionPort {
   delete(id: number): Promise<RedmineResult<null>>;
 }
 
+/**
+ * A Redmine search query. Only `q` is required; `scope` narrows where to look
+ * ("all", "my_projects", "subprojects", or a project identifier), and the
+ * remaining flags each restrict the result to one resource type (any combination
+ * ORs them together). `attachments` is tri-state ("0" | "1" | "only"), so it is
+ * a string rather than a boolean.
+ */
+export type SearchQuery = {
+  q: string;
+  scope?: string;
+  allWords?: boolean;
+  titlesOnly?: boolean;
+  openIssues?: boolean;
+  issues?: boolean;
+  news?: boolean;
+  documents?: boolean;
+  changesets?: boolean;
+  wikiPages?: boolean;
+  messages?: boolean;
+  projects?: boolean;
+  attachments?: boolean | string;
+};
+
+/**
+ * The full-text search operation the tool layer depends on. Search is a single
+ * read-only query across every indexed resource, so unlike the CRUD ports it
+ * exposes just one method (see ADR-0001).
+ */
+export interface SearchPort {
+  search(query: SearchQuery): Promise<RedmineResult<unknown>>;
+}
+
 export type RelationType =
   | "relates"
   | "duplicates"

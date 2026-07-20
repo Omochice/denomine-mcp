@@ -7,6 +7,8 @@ import type {
   RedmineResult,
   RelationCreate,
   RelationPort,
+  SearchPort,
+  SearchQuery,
   VersionCreate,
   VersionPort,
   VersionUpdate,
@@ -209,6 +211,58 @@ export class FakeVersionPort implements VersionPort {
 
   #notFound(): { status: number; errors: string[] } {
     return { status: 404, errors: [] };
+  }
+}
+
+/** One indexed document a {@link FakeSearchPort} can return. */
+export type SearchDoc = {
+  id: number;
+  title: string;
+  type: string;
+  url: string;
+};
+
+/** Maps each query type flag to the `type` its matching documents carry. */
+const searchTypeByFlag: Record<string, string> = {
+  issues: "issue",
+  news: "news",
+  documents: "document",
+  changesets: "changeset",
+  wikiPages: "wiki-page",
+  messages: "message",
+  projects: "project",
+};
+
+/**
+ * In-memory {@link SearchPort} for deterministic unit tests. Seeded with a
+ * corpus, it matches documents whose title contains `q` (case-insensitively) and
+ * restricts to the requested types when any type flag is set, mirroring
+ * Redmine's search closely enough to exercise the handler and MCP layers.
+ */
+export class FakeSearchPort implements SearchPort {
+  readonly #docs: readonly SearchDoc[];
+
+  constructor(docs: readonly SearchDoc[] = []) {
+    this.#docs = docs;
+  }
+
+  search(query: SearchQuery): Promise<RedmineResult<unknown>> {
+    if (query.q.trim() === "") {
+      return Promise.resolve(
+        Result.fail({ status: 422, errors: ["q cannot be blank"] }),
+      );
+    }
+    const needle = query.q.toLowerCase();
+    const types = Object.entries(searchTypeByFlag)
+      .filter(([flag]) => query[flag as keyof SearchQuery] === true)
+      .map(([, type]) => type);
+    const results = this.#docs.filter((doc) => {
+      if (!doc.title.toLowerCase().includes(needle)) {
+        return false;
+      }
+      return types.length === 0 || types.includes(doc.type);
+    });
+    return Promise.resolve(Result.succeed(results));
   }
 }
 
