@@ -5,6 +5,7 @@ import { buildServer } from "./server.ts";
 import {
   FakeIssuePort,
   FakeRelationPort,
+  FakeSearchPort,
   FakeVersionPort,
   FakeWikiPort,
 } from "../redmine/fake.ts";
@@ -12,6 +13,7 @@ import { issuesTool } from "../tools/issues/mod.ts";
 import { wikiTool } from "../tools/wiki/mod.ts";
 import { versionTool } from "../tools/version/mod.ts";
 import { relationTool } from "../tools/relation/mod.ts";
+import { searchTool } from "../tools/search/mod.ts";
 import type { ToolModule } from "./tool.ts";
 import type { Mode } from "../tools/mode.ts";
 
@@ -101,6 +103,32 @@ Deno.test("MCP server drives issue CRUD over an in-memory transport", async () =
       arguments: { action: "show", id },
     }) as CallResult;
     assertEquals(gone.isError, true);
+  } finally {
+    await client.close();
+  }
+});
+
+Deno.test("MCP server advertises and dispatches the read-only search tool", async () => {
+  const port = new FakeSearchPort([
+    { id: 1, title: "login fails", type: "issue", url: "/issues/1" },
+  ]);
+  const client = await connectTools([searchTool(port)], "readonly");
+  try {
+    const { tools } = await client.listTools();
+    const search = (tools as {
+      name: string;
+      inputSchema: { properties: { action: { enum: string[] } } };
+    }[]).find((tool) => tool.name === "redmine_search");
+    assert(search !== undefined, "search tool should be advertised");
+    assertEquals(search.inputSchema.properties.action.enum, ["search"]);
+
+    const result = await client.callTool({
+      name: "redmine_search",
+      arguments: { action: "search", q: "login" },
+    }) as CallResult;
+    assert(result.isError !== true);
+    const hits = JSON.parse(textOf(result)) as { id: number }[];
+    assertEquals(hits.map((hit) => hit.id), [1]);
   } finally {
     await client.close();
   }

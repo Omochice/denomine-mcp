@@ -3,12 +3,14 @@ import { RedmineClient } from "../redmine/client.ts";
 import { WikiClient } from "../redmine/wiki_client.ts";
 import { VersionClient } from "../redmine/version_client.ts";
 import { RelationClient } from "../redmine/relation_client.ts";
+import { SearchClient } from "../redmine/search_client.ts";
 import type { RedmineContext } from "../redmine/port.ts";
 import { buildServer } from "../mcp/server.ts";
 import { issuesTool } from "../tools/issues/mod.ts";
 import { wikiTool } from "../tools/wiki/mod.ts";
 import { versionTool } from "../tools/version/mod.ts";
 import { relationTool } from "../tools/relation/mod.ts";
+import { searchTool } from "../tools/search/mod.ts";
 import type { Mode } from "../tools/mode.ts";
 import type { Keyring } from "../keyring/port.ts";
 import { canonicalizeEndpoint } from "./endpoint.ts";
@@ -81,6 +83,7 @@ export async function runServe(
       wikiTool(new WikiClient(context)),
       versionTool(new VersionClient(context)),
       relationTool(new RelationClient(context)),
+      searchTool(new SearchClient(context)),
     ],
     mode,
   );
