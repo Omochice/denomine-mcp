@@ -1,6 +1,6 @@
 import { Redmine } from "@omochice/redmine";
 import { Result } from "@praha/byethrow";
-import { errorFromCause } from "./error.ts";
+import { toRedmineError } from "./error.ts";
 import type {
   RedmineContext,
   RedmineResult,
@@ -11,8 +11,10 @@ import type {
 /**
  * Real {@link WikiPort} backed by `@omochice/redmine`.
  *
- * Each operation branches the library's Result explicitly (ADR-0002).
- * `create`/`update`/`delete` carry no body, so they resolve to `null`.
+ * The library throws on failure (ADR-0002), so each operation runs through
+ * `Result.try`, mapping a throw to a {@link RedmineError} via
+ * {@link toRedmineError}. `list` is an async generator, so it is drained into an
+ * array; `create`/`update`/`delete` carry no body, so they resolve to `null`.
  */
 export class WikiClient implements WikiPort {
   readonly #redmine: Redmine;
@@ -21,58 +23,60 @@ export class WikiClient implements WikiPort {
     this.#redmine = new Redmine(context);
   }
 
-  async list(projectId: number): Promise<RedmineResult<unknown>> {
-    const result = await this.#redmine.wiki.list(projectId);
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(result.value);
+  list(projectId: number): Promise<RedmineResult<unknown>> {
+    return Result.try({
+      try: () => Array.fromAsync(this.#redmine.wiki.list(projectId)),
+      catch: toRedmineError,
+    });
   }
 
-  async show(
+  show(
     projectId: number,
     title: string,
     version?: number,
   ): Promise<RedmineResult<unknown>> {
-    const result = version === undefined
-      ? await this.#redmine.wiki.show(projectId, title)
-      : await this.#redmine.wiki.show(projectId, title, version);
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(result.value);
+    return Result.try({
+      try: () => this.#redmine.wiki.show({ projectId, title, version }),
+      catch: toRedmineError,
+    });
   }
 
-  async create(
+  create(
     projectId: number,
     wiki: WikiContent,
   ): Promise<RedmineResult<null>> {
-    const result = await this.#redmine.wiki.create(projectId, wiki);
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(null);
+    return Result.try({
+      try: async () => {
+        await this.#redmine.wiki.create(projectId, wiki);
+        return null;
+      },
+      catch: toRedmineError,
+    });
   }
 
-  async update(
+  update(
     projectId: number,
     wiki: WikiContent,
   ): Promise<RedmineResult<null>> {
-    const result = await this.#redmine.wiki.update(projectId, wiki);
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(null);
+    return Result.try({
+      try: async () => {
+        await this.#redmine.wiki.update(projectId, wiki);
+        return null;
+      },
+      catch: toRedmineError,
+    });
   }
 
-  async delete(
+  delete(
     projectId: number,
     title: string,
   ): Promise<RedmineResult<null>> {
-    const result = await this.#redmine.wiki.delete(projectId, title);
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(null);
+    return Result.try({
+      try: async () => {
+        await this.#redmine.wiki.delete(projectId, title);
+        return null;
+      },
+      catch: toRedmineError,
+    });
   }
 }

@@ -1,6 +1,6 @@
 import { Redmine } from "@omochice/redmine";
 import { Result } from "@praha/byethrow";
-import { errorFromCause } from "./error.ts";
+import { toRedmineError } from "./error.ts";
 import type {
   RedmineContext,
   RedmineResult,
@@ -24,8 +24,10 @@ function toLibraryQuery<T extends { dueDate?: string }>(
 /**
  * Real {@link VersionPort} backed by `@omochice/redmine`.
  *
- * Each operation branches the library's Result explicitly (ADR-0002).
- * `create`/`update`/`delete` carry no body, so they resolve to `null`.
+ * The library throws on failure (ADR-0002), so each operation runs through
+ * `Result.try`, mapping a throw to a {@link RedmineError} via
+ * {@link toRedmineError}. `list` is an async generator, so it is drained into an
+ * array; `create`/`update`/`delete` carry no body, so they resolve to `null`.
  */
 export class VersionClient implements VersionPort {
   readonly #redmine: Redmine;
@@ -34,55 +36,53 @@ export class VersionClient implements VersionPort {
     this.#redmine = new Redmine(context);
   }
 
-  async list(projectId: number): Promise<RedmineResult<unknown>> {
-    const result = await this.#redmine.version.list(projectId);
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(result.value);
+  list(projectId: number): Promise<RedmineResult<unknown>> {
+    return Result.try({
+      try: () => Array.fromAsync(this.#redmine.version.list(projectId)),
+      catch: toRedmineError,
+    });
   }
 
-  async show(id: number): Promise<RedmineResult<unknown>> {
-    const result = await this.#redmine.version.show(id);
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(result.value);
+  show(id: number): Promise<RedmineResult<unknown>> {
+    return Result.try({
+      try: () => this.#redmine.version.show(id),
+      catch: toRedmineError,
+    });
   }
 
-  async create(
+  create(
     projectId: number,
     attrs: VersionCreate,
   ): Promise<RedmineResult<null>> {
-    const result = await this.#redmine.version.create(
-      projectId,
-      toLibraryQuery(attrs),
-    );
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(null);
+    return Result.try({
+      try: async () => {
+        await this.#redmine.version.create(projectId, toLibraryQuery(attrs));
+        return null;
+      },
+      catch: toRedmineError,
+    });
   }
 
-  async update(
+  update(
     id: number,
     attrs: VersionUpdate,
   ): Promise<RedmineResult<null>> {
-    const result = await this.#redmine.version.update(
-      id,
-      toLibraryQuery(attrs),
-    );
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(null);
+    return Result.try({
+      try: async () => {
+        await this.#redmine.version.update(id, toLibraryQuery(attrs));
+        return null;
+      },
+      catch: toRedmineError,
+    });
   }
 
-  async delete(id: number): Promise<RedmineResult<null>> {
-    const result = await this.#redmine.version.delete(id);
-    if (result.isErr()) {
-      return Result.fail(await errorFromCause(result.error));
-    }
-    return Result.succeed(null);
+  delete(id: number): Promise<RedmineResult<null>> {
+    return Result.try({
+      try: async () => {
+        await this.#redmine.version.delete(id);
+        return null;
+      },
+      catch: toRedmineError,
+    });
   }
 }
