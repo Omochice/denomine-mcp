@@ -1,4 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { Result } from "@praha/byethrow";
 import { VersionClient } from "./version_client.ts";
 
 function env(name: string): string | undefined {
@@ -32,13 +33,13 @@ Deno.test({
         name,
         status: "open",
       });
-      assert(result.ok, JSON.stringify(result));
+      assert(Result.isSuccess(result), JSON.stringify(result));
     });
 
     await t.step("list finds the created version", async () => {
       const result = await client.list(projectId);
-      assert(result.ok);
-      const versions = result.value as { id: number; name: string }[];
+      assert(Result.isSuccess(result));
+      const versions = Result.unwrap(result) as { id: number; name: string }[];
       const found = versions.find((version) => version.name === name);
       assert(found !== undefined, "created version not found in list");
       id = found.id;
@@ -46,23 +47,26 @@ Deno.test({
 
     await t.step("show returns the version", async () => {
       const result = await client.show(id);
-      assert(result.ok);
-      assertEquals((result.value as { name: string }).name, name);
+      assert(Result.isSuccess(result));
+      assertEquals((Result.unwrap(result) as { name: string }).name, name);
     });
 
     await t.step("update changes the status", async () => {
       const updated = await client.update(id, { status: "closed" });
-      assert(updated.ok, JSON.stringify(updated));
+      assert(Result.isSuccess(updated), JSON.stringify(updated));
       const shown = await client.show(id);
-      assert(shown.ok);
-      assertEquals((shown.value as { status: string }).status, "closed");
+      assert(Result.isSuccess(shown));
+      assertEquals(
+        (Result.unwrap(shown) as { status: string }).status,
+        "closed",
+      );
     });
 
     await t.step("delete removes the version", async () => {
       const deleted = await client.delete(id);
-      assert(deleted.ok, JSON.stringify(deleted));
+      assert(Result.isSuccess(deleted), JSON.stringify(deleted));
       const shown = await client.show(id);
-      assert(!shown.ok, "version should be gone after delete");
+      assert(Result.isFailure(shown), "version should be gone after delete");
     });
   },
 });

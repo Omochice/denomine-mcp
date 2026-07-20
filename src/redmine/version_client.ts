@@ -1,4 +1,5 @@
 import { Redmine } from "@omochice/redmine";
+import { Result } from "@praha/byethrow";
 import { errorFromCause } from "./error.ts";
 import type {
   RedmineContext,
@@ -36,17 +37,17 @@ export class VersionClient implements VersionPort {
   async list(projectId: number): Promise<RedmineResult<unknown>> {
     const result = await this.#redmine.version.list(projectId);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: result.value };
+    return Result.succeed(result.value);
   }
 
   async show(id: number): Promise<RedmineResult<unknown>> {
     const result = await this.#redmine.version.show(id);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: result.value };
+    return Result.succeed(result.value);
   }
 
   async create(
@@ -58,9 +59,9 @@ export class VersionClient implements VersionPort {
       toLibraryQuery(attrs),
     );
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 
   async update(
@@ -72,16 +73,16 @@ export class VersionClient implements VersionPort {
       toLibraryQuery(attrs),
     );
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 
   async delete(id: number): Promise<RedmineResult<null>> {
     const result = await this.#redmine.version.delete(id);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 }

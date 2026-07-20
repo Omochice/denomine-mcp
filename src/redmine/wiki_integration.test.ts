@@ -1,4 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { Result } from "@praha/byethrow";
 import { WikiClient } from "./wiki_client.ts";
 
 function env(name: string): string | undefined {
@@ -31,13 +32,13 @@ Deno.test({
         title,
         text: "created by the wiki integration test",
       });
-      assert(result.ok, JSON.stringify(result));
+      assert(Result.isSuccess(result), JSON.stringify(result));
     });
 
     await t.step("show returns the page", async () => {
       const result = await client.show(projectId, title);
-      assert(result.ok, JSON.stringify(result));
-      assertEquals((result.value as { title: string }).title, title);
+      assert(Result.isSuccess(result), JSON.stringify(result));
+      assertEquals((Result.unwrap(result) as { title: string }).title, title);
     });
 
     await t.step("update changes the text", async () => {
@@ -45,20 +46,20 @@ Deno.test({
         title,
         text: "edited by the wiki integration test",
       });
-      assert(updated.ok, JSON.stringify(updated));
+      assert(Result.isSuccess(updated), JSON.stringify(updated));
       const shown = await client.show(projectId, title);
-      assert(shown.ok);
+      assert(Result.isSuccess(shown));
       assertEquals(
-        (shown.value as { text: string }).text,
+        (Result.unwrap(shown) as { text: string }).text,
         "edited by the wiki integration test",
       );
     });
 
     await t.step("delete removes the page", async () => {
       const deleted = await client.delete(projectId, title);
-      assert(deleted.ok, JSON.stringify(deleted));
+      assert(Result.isSuccess(deleted), JSON.stringify(deleted));
       const shown = await client.show(projectId, title);
-      assert(!shown.ok, "page should be gone after delete");
+      assert(Result.isFailure(shown), "page should be gone after delete");
     });
   },
 });

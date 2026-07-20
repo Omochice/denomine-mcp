@@ -1,4 +1,5 @@
 import { Redmine } from "@omochice/redmine";
+import { Result } from "@praha/byethrow";
 import { errorFromCause } from "./error.ts";
 import type {
   RedmineContext,
@@ -23,9 +24,9 @@ export class WikiClient implements WikiPort {
   async list(projectId: number): Promise<RedmineResult<unknown>> {
     const result = await this.#redmine.wiki.list(projectId);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: result.value };
+    return Result.succeed(result.value);
   }
 
   async show(
@@ -37,9 +38,9 @@ export class WikiClient implements WikiPort {
       ? await this.#redmine.wiki.show(projectId, title)
       : await this.#redmine.wiki.show(projectId, title, version);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: result.value };
+    return Result.succeed(result.value);
   }
 
   async create(
@@ -48,9 +49,9 @@ export class WikiClient implements WikiPort {
   ): Promise<RedmineResult<null>> {
     const result = await this.#redmine.wiki.create(projectId, wiki);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 
   async update(
@@ -59,9 +60,9 @@ export class WikiClient implements WikiPort {
   ): Promise<RedmineResult<null>> {
     const result = await this.#redmine.wiki.update(projectId, wiki);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 
   async delete(
@@ -70,8 +71,8 @@ export class WikiClient implements WikiPort {
   ): Promise<RedmineResult<null>> {
     const result = await this.#redmine.wiki.delete(projectId, title);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 }

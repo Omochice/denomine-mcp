@@ -1,4 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { Result } from "@praha/byethrow";
 import { RedmineClient } from "./client.ts";
 
 /** Reads an env var, treating a denied `--allow-env` as simply absent so the
@@ -39,13 +40,13 @@ Deno.test({
         priorityId: 2,
         subject,
       });
-      assert(result.ok, JSON.stringify(result));
+      assert(Result.isSuccess(result), JSON.stringify(result));
     });
 
     await t.step("list finds the created issue", async () => {
       const result = await client.list({ projectId });
-      assert(result.ok);
-      const issues = result.value as { id: number; subject: string }[];
+      assert(Result.isSuccess(result));
+      const issues = Result.unwrap(result) as { id: number; subject: string }[];
       const found = issues.find((issue) => issue.subject === subject);
       assert(found !== undefined, "created issue not found in list");
       id = found.id;
@@ -53,28 +54,31 @@ Deno.test({
 
     await t.step("show returns the issue", async () => {
       const result = await client.show(id);
-      assert(result.ok);
-      assertEquals((result.value as { subject: string }).subject, subject);
+      assert(Result.isSuccess(result));
+      assertEquals(
+        (Result.unwrap(result) as { subject: string }).subject,
+        subject,
+      );
     });
 
     await t.step("update changes the subject", async () => {
       const updated = await client.update(id, {
         subject: `${subject} (edited)`,
       });
-      assert(updated.ok, JSON.stringify(updated));
+      assert(Result.isSuccess(updated), JSON.stringify(updated));
       const shown = await client.show(id);
-      assert(shown.ok);
+      assert(Result.isSuccess(shown));
       assertEquals(
-        (shown.value as { subject: string }).subject,
+        (Result.unwrap(shown) as { subject: string }).subject,
         `${subject} (edited)`,
       );
     });
 
     await t.step("delete removes the issue", async () => {
       const deleted = await client.delete(id);
-      assert(deleted.ok, JSON.stringify(deleted));
+      assert(Result.isSuccess(deleted), JSON.stringify(deleted));
       const shown = await client.show(id);
-      assert(!shown.ok, "issue should be gone after delete");
+      assert(Result.isFailure(shown), "issue should be gone after delete");
     });
   },
 });

@@ -1,3 +1,5 @@
+import type { Result } from "@praha/byethrow";
+
 /** Connection details for one Redmine instance. */
 export type RedmineContext = {
   endpoint: string;
@@ -14,10 +16,12 @@ export type RedmineError = {
   errors: string[];
 };
 
-/** Explicit success/failure of a Redmine call, branched at each call site. */
-export type RedmineResult<T> =
-  | { ok: true; value: T }
-  | { ok: false; error: RedmineError };
+/**
+ * Success or failure of a Redmine call, branched at each call site. Bound to
+ * `@praha/byethrow` so the whole codebase shares one Result representation and
+ * its combinators, with the failure fixed to {@link RedmineError}.
+ */
+export type RedmineResult<T> = Result.Result<T, RedmineError>;
 
 export type IssueListQuery = {
   projectId?: number;

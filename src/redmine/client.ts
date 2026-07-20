@@ -1,4 +1,5 @@
 import { Redmine } from "@omochice/redmine";
+import { Result } from "@praha/byethrow";
 import { errorFromCause } from "./error.ts";
 import type {
   IssueCreate,
@@ -27,40 +28,40 @@ export class RedmineClient implements IssuePort {
   async list(query: IssueListQuery): Promise<RedmineResult<unknown>> {
     const result = await this.#redmine.issue.list(query);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: result.value };
+    return Result.succeed(result.value);
   }
 
   async show(id: number): Promise<RedmineResult<unknown>> {
     const result = await this.#redmine.issue.show(id);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: result.value };
+    return Result.succeed(result.value);
   }
 
   async create(attrs: IssueCreate): Promise<RedmineResult<null>> {
     const result = await this.#redmine.issue.create(attrs);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 
   async update(id: number, attrs: IssueUpdate): Promise<RedmineResult<null>> {
     const result = await this.#redmine.issue.update(id, attrs);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 
   async delete(id: number): Promise<RedmineResult<null>> {
     const result = await this.#redmine.issue.delete(id);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 }

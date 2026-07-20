@@ -1,4 +1,5 @@
 import { Redmine } from "@omochice/redmine";
+import { Result } from "@praha/byethrow";
 import { errorFromCause } from "./error.ts";
 import type {
   RedmineContext,
@@ -23,17 +24,17 @@ export class RelationClient implements RelationPort {
   async list(issueId: number): Promise<RedmineResult<unknown>> {
     const result = await this.#redmine.issueRelation.list(issueId);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: result.value };
+    return Result.succeed(result.value);
   }
 
   async show(id: number): Promise<RedmineResult<unknown>> {
     const result = await this.#redmine.issueRelation.show(id);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: result.value };
+    return Result.succeed(result.value);
   }
 
   async create(
@@ -42,16 +43,16 @@ export class RelationClient implements RelationPort {
   ): Promise<RedmineResult<null>> {
     const result = await this.#redmine.issueRelation.create(issueId, attrs);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 
   async delete(id: number): Promise<RedmineResult<null>> {
     const result = await this.#redmine.issueRelation.delete(id);
     if (result.isErr()) {
-      return { ok: false, error: await errorFromCause(result.error) };
+      return Result.fail(await errorFromCause(result.error));
     }
-    return { ok: true, value: null };
+    return Result.succeed(null);
   }
 }
