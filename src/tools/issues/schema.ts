@@ -8,6 +8,7 @@ export const listInput = v.object({
   statusId: v.optional(
     v.union([v.number(), v.picklist(["open", "closed", "*"])]),
   ),
+  fixedVersionId: v.optional(v.number()),
   assignedToId: v.optional(v.union([v.number(), v.literal("me")])),
   limit: v.optional(v.number()),
 });

@@ -27,6 +27,7 @@ export type IssueListQuery = {
   projectId?: number;
   trackerId?: number;
   statusId?: "open" | "closed" | "*" | number;
+  fixedVersionId?: number;
   assignedToId?: number | "me";
   limit?: number;
 };
