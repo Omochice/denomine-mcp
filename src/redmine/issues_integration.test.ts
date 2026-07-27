@@ -52,6 +52,16 @@ Deno.test({
       id = found.id;
     });
 
+    await t.step("list filtered by creation date finds it", async () => {
+      const result = await client.list({ projectId, createdOn: "today" });
+      assert(Result.isSuccess(result), JSON.stringify(result));
+      const issues = Result.unwrap(result) as { id: number }[];
+      assert(
+        issues.some((issue) => issue.id === id),
+        "issue created moments ago not matched by createdOn: today",
+      );
+    });
+
     await t.step("show returns the issue", async () => {
       const result = await client.show(id);
       assert(Result.isSuccess(result));

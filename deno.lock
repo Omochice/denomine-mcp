@@ -8,7 +8,7 @@
     "jsr:@cliffy/keycode@1.2.1": "1.2.1",
     "jsr:@cliffy/prompt@^1.2.1": "1.2.1",
     "jsr:@cliffy/table@1.2.1": "1.2.1",
-    "jsr:@omochice/redmine@^3.1.0": "3.1.0",
+    "jsr:@omochice/redmine@^3.2.0": "3.2.0",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/assert@1.0.18": "1.0.18",
     "jsr:@std/assert@^1.0.19": "1.0.19",
@@ -19,6 +19,7 @@
     "jsr:@std/io@~0.225.3": "0.225.3",
     "jsr:@std/path@1.1.6": "1.1.6",
     "jsr:@std/path@^1.1.5": "1.1.6",
+    "jsr:@std/semver@^1.0.8": "1.0.8",
     "jsr:@std/text@^1.0.19": "1.0.19",
     "jsr:@valibot/to-json-schema@^1.7.1": "1.7.1",
     "jsr:@valibot/valibot@1.4.2": "1.4.2",
@@ -43,6 +44,7 @@
         "jsr:@cliffy/internal",
         "jsr:@cliffy/table",
         "jsr:@std/fmt",
+        "jsr:@std/semver",
         "jsr:@std/text"
       ]
     },
@@ -78,8 +80,8 @@
         "jsr:@std/fmt"
       ]
     },
-    "@omochice/redmine@3.1.0": {
-      "integrity": "853cb70226e091ed43687cb75710e0a7c7770e307a0d39c5e28ac700e2c708ee",
+    "@omochice/redmine@3.2.0": {
+      "integrity": "a67613da444e79556cf94f2617afbbbaa3e3186743b5bbf1805f8d7123bca9c9",
       "dependencies": [
         "jsr:@std/path@1.1.6",
         "jsr:@valibot/valibot@1.4.2",
@@ -115,6 +117,9 @@
       "dependencies": [
         "jsr:@std/internal@^1.0.14"
       ]
+    },
+    "@std/semver@1.0.8": {
+      "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
     },
     "@std/text@1.0.19": {
       "integrity": "003a0e032d360e8c3a4e0410fb792c77a66bd6553fee9d60c6ec1bce30d29223"
@@ -786,7 +791,7 @@
     "dependencies": [
       "jsr:@cliffy/command@^1.2.1",
       "jsr:@cliffy/prompt@^1.2.1",
-      "jsr:@omochice/redmine@^3.1.0",
+      "jsr:@omochice/redmine@^3.2.0",
       "jsr:@valibot/to-json-schema@^1.7.1",
       "jsr:@valibot/valibot@^1.4.2",
       "npm:@praha/byethrow@0.12"

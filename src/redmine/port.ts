@@ -23,12 +23,65 @@ export type RedmineError = {
  */
 export type RedmineResult<T> = Result.Result<T, RedmineError>;
 
+/** An absolute date bound, written as an ISO date (`YYYY-MM-DD`). */
+export type IsoDate = string;
+
+/** A period Redmine resolves against the day the query runs. */
+export type DatePeriod =
+  | "today"
+  | "yesterday"
+  | "thisWeek"
+  | "lastWeek"
+  | "lastTwoWeeks"
+  | "thisMonth"
+  | "lastMonth"
+  | "thisYear"
+  | "any"
+  | "none";
+
+/** A period that looks forward; only {@link DateFilter} fields accept one. */
+export type FutureDatePeriod = "tomorrow" | "nextWeek" | "nextMonth";
+
+/**
+ * A filter on an issue date field Redmine types as `:date_past` — `createdOn`,
+ * `updatedOn`, `closedOn`. Every bound is inclusive, because Redmine's absolute
+ * date operators are limited to `=`, `>=`, `<=` and `><`.
+ *
+ * Forward-looking forms are absent: Redmine answers 422 for them on these
+ * fields, so {@link DateFilter} is the wider type that carries them.
+ */
+export type PastDateFilter =
+  | IsoDate
+  | DatePeriod
+  | { daysAgo: number }
+  | { from: IsoDate; to?: IsoDate }
+  | { from?: IsoDate; to: IsoDate }
+  | { from: { daysAgo: number }; to?: "today" }
+  | { to: { daysAgo: number } };
+
+/**
+ * A filter on an issue date field Redmine types as `:date` — `startDate`,
+ * `dueDate` — which also accept the forward-looking forms.
+ */
+export type DateFilter =
+  | PastDateFilter
+  | FutureDatePeriod
+  | { daysFromNow: number }
+  | { from: { daysFromNow: number } }
+  | { to: { daysFromNow: number } }
+  | { from: "today"; to: { daysFromNow: number } };
+
 export type IssueListQuery = {
   projectId?: number;
   trackerId?: number;
   statusId?: "open" | "closed" | "*" | number;
   fixedVersionId?: number;
   assignedToId?: number | "me";
+  startDate?: DateFilter;
+  dueDate?: DateFilter;
+  createdOn?: PastDateFilter;
+  updatedOn?: PastDateFilter;
+  closedOn?: PastDateFilter;
   limit?: number;
 };
 

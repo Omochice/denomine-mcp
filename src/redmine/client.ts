@@ -1,5 +1,6 @@
 import { Redmine } from "@omochice/redmine";
 import { Result } from "@praha/byethrow";
+import { toListQuery } from "./date_filter.ts";
 import { toRedmineError } from "./error.ts";
 import type {
   IssueCreate,
@@ -28,7 +29,7 @@ export class RedmineClient implements IssuePort {
 
   list(query: IssueListQuery): Promise<RedmineResult<unknown>> {
     return Result.try({
-      try: () => Array.fromAsync(this.#redmine.issue.list(query)),
+      try: () => Array.fromAsync(this.#redmine.issue.list(toListQuery(query))),
       catch: toRedmineError,
     });
   }

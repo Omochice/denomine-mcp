@@ -1,6 +1,57 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
 
+const isoDate = v.pipe(
+  v.string(),
+  v.regex(/^\d{4}-\d{2}-\d{2}$/, "must be an ISO date (YYYY-MM-DD)"),
+);
+
+const datePeriod = v.picklist([
+  "today",
+  "yesterday",
+  "thisWeek",
+  "lastWeek",
+  "lastTwoWeeks",
+  "thisMonth",
+  "lastMonth",
+  "thisYear",
+  "any",
+  "none",
+]);
+
+const futureDatePeriod = v.picklist(["tomorrow", "nextWeek", "nextMonth"]);
+
+// Redmine reads a relative bound as a whole number of days back or forward, and
+// counts 0 as today; a negative or fractional count has no wire form.
+const dayOffset = v.pipe(v.number(), v.integer(), v.minValue(0));
+
+const daysAgo = v.strictObject({ daysAgo: dayOffset });
+const daysFromNow = v.strictObject({ daysFromNow: dayOffset });
+
+// strictObject, not object: object() strips unknown keys, so `{ from }` would
+// also match `{ from, to }` and drop the upper bound, turning a range into an
+// open-ended filter without an error.
+const pastDateFilter = v.union([
+  isoDate,
+  datePeriod,
+  daysAgo,
+  v.strictObject({ from: isoDate, to: v.optional(isoDate) }),
+  v.strictObject({ from: v.optional(isoDate), to: isoDate }),
+  v.strictObject({ from: daysAgo, to: v.optional(v.literal("today")) }),
+  v.strictObject({ to: daysAgo }),
+]);
+
+// The forward-looking forms are added only here: Redmine types created_on,
+// updated_on and closed_on as `:date_past` and answers 422 for them there.
+const dateFilter = v.union([
+  ...pastDateFilter.options,
+  futureDatePeriod,
+  daysFromNow,
+  v.strictObject({ from: daysFromNow }),
+  v.strictObject({ to: daysFromNow }),
+  v.strictObject({ from: v.literal("today"), to: daysFromNow }),
+]);
+
 export const listInput = v.object({
   action: v.literal("list"),
   projectId: v.optional(v.number()),
@@ -10,6 +61,11 @@ export const listInput = v.object({
   ),
   fixedVersionId: v.optional(v.number()),
   assignedToId: v.optional(v.union([v.number(), v.literal("me")])),
+  startDate: v.optional(dateFilter),
+  dueDate: v.optional(dateFilter),
+  createdOn: v.optional(pastDateFilter),
+  updatedOn: v.optional(pastDateFilter),
+  closedOn: v.optional(pastDateFilter),
   limit: v.optional(v.number()),
 });
 
