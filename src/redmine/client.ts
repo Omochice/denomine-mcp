@@ -1,6 +1,6 @@
 import { Redmine } from "@omochice/redmine";
 import { Result } from "@praha/byethrow";
-import { toListQuery } from "./date_filter.ts";
+import { toListQuery } from "./list_query.ts";
 import { toRedmineError } from "./error.ts";
 import { toIncludes } from "./include.ts";
 import type {

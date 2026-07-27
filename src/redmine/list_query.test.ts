@@ -1,7 +1,7 @@
 import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1.0.18";
 import { toListOption } from "@omochice/redmine/issues/validator";
 import * as v from "@valibot/valibot";
-import { toListQuery } from "./date_filter.ts";
+import { toListQuery } from "./list_query.ts";
 
 Deno.test("an ISO date becomes the UTC day, not the local one", () => {
   assertEquals(
