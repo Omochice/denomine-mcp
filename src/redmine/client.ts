@@ -2,8 +2,10 @@ import { Redmine } from "@omochice/redmine";
 import { Result } from "@praha/byethrow";
 import { toListQuery } from "./date_filter.ts";
 import { toRedmineError } from "./error.ts";
+import { toIncludes } from "./include.ts";
 import type {
   IssueCreate,
+  IssueInclude,
   IssueListQuery,
   IssuePort,
   IssueUpdate,
@@ -34,9 +36,12 @@ export class RedmineClient implements IssuePort {
     });
   }
 
-  show(id: number): Promise<RedmineResult<unknown>> {
+  show(
+    id: number,
+    include?: IssueInclude[],
+  ): Promise<RedmineResult<unknown>> {
     return Result.try({
-      try: () => this.#redmine.issue.show(id),
+      try: () => this.#redmine.issue.show(id, toIncludes(include)),
       catch: toRedmineError,
     });
   }

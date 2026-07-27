@@ -97,6 +97,22 @@ export const listInput = v.object({
 export const showInput = v.object({
   action: v.literal("show"),
   id: v.number(),
+  include: v.optional(
+    describe(
+      v.array(
+        v.picklist([
+          "journals",
+          "attachments",
+          "relations",
+          "children",
+          "changesets",
+          "watchers",
+          "allowedStatuses",
+        ]),
+      ),
+      "Associations Redmine omits unless asked for. `journals` are the comments and the field-change history.",
+    ),
+  ),
 });
 
 export const createInput = v.object({

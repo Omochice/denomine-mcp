@@ -85,6 +85,19 @@ export type IssueListQuery = {
   limit?: number;
 };
 
+/**
+ * An association Redmine leaves out of an issue unless it is asked for.
+ * `journals` are the comments and the field-change history.
+ */
+export type IssueInclude =
+  | "journals"
+  | "attachments"
+  | "relations"
+  | "children"
+  | "changesets"
+  | "watchers"
+  | "allowedStatuses";
+
 export type IssueCreate = {
   projectId: number;
   trackerId: number;
@@ -115,7 +128,10 @@ export type IssueUpdate = {
  */
 export interface IssuePort {
   list(query: IssueListQuery): Promise<RedmineResult<unknown>>;
-  show(id: number): Promise<RedmineResult<unknown>>;
+  show(
+    id: number,
+    include?: IssueInclude[],
+  ): Promise<RedmineResult<unknown>>;
   create(attrs: IssueCreate): Promise<RedmineResult<null>>;
   update(id: number, attrs: IssueUpdate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;

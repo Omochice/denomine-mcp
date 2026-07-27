@@ -11,6 +11,29 @@ Deno.test("list keeps fixedVersionId so a version filter is not silently dropped
   assertEquals(parsed, { action: "list", fixedVersionId: 42 });
 });
 
+Deno.test("show keeps the associations it was asked to include", () => {
+  const parsed = v.parse(issueInputSchema("readonly"), {
+    action: "show",
+    id: 1,
+    include: ["journals", "attachments"],
+  });
+  assertEquals(parsed, {
+    action: "show",
+    id: 1,
+    include: ["journals", "attachments"],
+  });
+});
+
+Deno.test("show rejects an association Redmine does not have", () => {
+  assert(
+    !v.safeParse(issueInputSchema("readonly"), {
+      action: "show",
+      id: 1,
+      include: ["comments"],
+    }).success,
+  );
+});
+
 Deno.test("list keeps every date filter field", () => {
   const parsed = v.parse(issueInputSchema("readonly"), {
     action: "list",

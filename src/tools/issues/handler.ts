@@ -23,7 +23,7 @@ function dispatch(
       return port.list(query);
     }
     case "show":
-      return port.show(input.id);
+      return port.show(input.id, input.include);
     case "create": {
       const { action: _action, ...attrs } = input;
       return port.create(attrs);

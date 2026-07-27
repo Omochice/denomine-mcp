@@ -52,6 +52,32 @@ Deno.test("issue handler runs a full CRUD cycle against the port", async (t) => 
     assertEquals(issue.subject, "second");
   });
 
+  await t.step(
+    "show returns the notes only when asked to include them",
+    async () => {
+      await handleIssue(port, { action: "update", id: 1, notes: "a comment" });
+
+      const plain = await handleIssue(port, { action: "show", id: 1 });
+      assertEquals(
+        (JSON.parse(textOf(plain)) as { issue: { journals?: unknown } }).issue
+          .journals,
+        undefined,
+      );
+
+      const withJournals = await handleIssue(port, {
+        action: "show",
+        id: 1,
+        include: ["journals"],
+      });
+      const { issue } = JSON.parse(textOf(withJournals)) as {
+        issue: { journals: { notes: string }[] };
+      };
+      assertEquals(issue.journals.map((journal) => journal.notes), [
+        "a comment",
+      ]);
+    },
+  );
+
   await t.step("delete removes the issue", async () => {
     const response = await handleIssue(port, { action: "delete", id: 1 });
     assert(response.isError !== true);

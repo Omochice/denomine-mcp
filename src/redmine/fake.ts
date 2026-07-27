@@ -1,6 +1,7 @@
 import { Result } from "@praha/byethrow";
 import type {
   IssueCreate,
+  IssueInclude,
   IssueListQuery,
   IssuePort,
   IssueUpdate,
@@ -21,10 +22,12 @@ type StoredIssue = { id: number } & Record<string, unknown>;
 /**
  * In-memory {@link IssuePort} for deterministic unit tests, standing in for a
  * live Redmine (ADR-0007). It models just enough behavior — id assignment,
- * lookup, and a 404 on a missing id — to exercise the handler and MCP layers.
+ * lookup, a 404 on a missing id, and a journal per note — to exercise the
+ * handler and MCP layers.
  */
 export class FakeIssuePort implements IssuePort {
   readonly #issues = new Map<number, StoredIssue>();
+  readonly #journals = new Map<number, { notes: string }[]>();
   #nextId = 1;
 
   list(query: IssueListQuery): Promise<RedmineResult<unknown>> {
@@ -38,12 +41,22 @@ export class FakeIssuePort implements IssuePort {
     return Promise.resolve(Result.succeed({ issues }));
   }
 
-  show(id: number): Promise<RedmineResult<unknown>> {
+  show(
+    id: number,
+    include?: IssueInclude[],
+  ): Promise<RedmineResult<unknown>> {
     const issue = this.#issues.get(id);
     if (issue === undefined) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
-    return Promise.resolve(Result.succeed({ issue }));
+    // Redmine leaves an association out entirely unless it was asked for, so
+    // the fake does too: a caller that forgets `include` must not see journals.
+    const journals = include?.includes("journals") === true
+      ? { journals: this.#journals.get(id) ?? [] }
+      : {};
+    return Promise.resolve(
+      Result.succeed({ issue: { ...issue, ...journals } }),
+    );
   }
 
   create(attrs: IssueCreate): Promise<RedmineResult<null>> {
@@ -62,7 +75,11 @@ export class FakeIssuePort implements IssuePort {
     if (issue === undefined) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
-    this.#issues.set(id, { ...issue, ...attrs });
+    const { notes, ...fields } = attrs;
+    if (notes !== undefined) {
+      this.#journals.set(id, [...(this.#journals.get(id) ?? []), { notes }]);
+    }
+    this.#issues.set(id, { ...issue, ...fields });
     return Promise.resolve(Result.succeed(null));
   }
 
@@ -70,6 +87,7 @@ export class FakeIssuePort implements IssuePort {
     if (!this.#issues.delete(id)) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
+    this.#journals.delete(id);
     return Promise.resolve(Result.succeed(null));
   }
 
