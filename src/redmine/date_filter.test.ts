@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1.0.18";
 import { toListOption } from "@omochice/redmine/issues/validator";
 import * as v from "@valibot/valibot";
 import { toListQuery } from "./date_filter.ts";
@@ -64,6 +64,11 @@ Deno.test("a filter the caller omitted stays absent, never a set-to-undefined ke
   const query = toListQuery({ projectId: 1 });
   assertEquals(query, { projectId: 1 });
   assert(!Object.hasOwn(query, "createdOn"));
+});
+
+Deno.test("a day its month does not have is refused, not rolled over", () => {
+  assertThrows(() => toListQuery({ createdOn: "2026-02-30" }));
+  assertThrows(() => toListQuery({ startDate: { from: "2026-02-30" } }));
 });
 
 /**
