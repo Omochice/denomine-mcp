@@ -1,10 +1,7 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
 
-const isoDate = v.pipe(
-  v.string(),
-  v.regex(/^\d{4}-\d{2}-\d{2}$/, "must be an ISO date (YYYY-MM-DD)"),
-);
+const isoDate = v.pipe(v.string(), v.isoDate());
 
 const datePeriod = v.picklist([
   "today",
@@ -28,17 +25,36 @@ const dayOffset = v.pipe(v.number(), v.integer(), v.minValue(0));
 const daysAgo = v.strictObject({ daysAgo: dayOffset });
 const daysFromNow = v.strictObject({ daysFromNow: dayOffset });
 
+// A relative bound alone names one day, while the same bound inside `from` or
+// `to` opens a span. Both read alike, so each form says which it is: a model
+// reaching for `{ daysAgo: 7 }` to mean "the last week" would otherwise get the
+// single day a week ago, with nothing to signal the mismatch.
+const describe = <T extends v.GenericSchema>(schema: T, text: string) =>
+  v.pipe(schema, v.description(text));
+
 // strictObject, not object: object() strips unknown keys, so `{ from }` would
 // also match `{ from, to }` and drop the upper bound, turning a range into an
 // open-ended filter without an error.
 const pastDateFilter = v.union([
-  isoDate,
+  describe(isoDate, "That day."),
   datePeriod,
-  daysAgo,
-  v.strictObject({ from: isoDate, to: v.optional(isoDate) }),
-  v.strictObject({ from: v.optional(isoDate), to: isoDate }),
-  v.strictObject({ from: daysAgo, to: v.optional(v.literal("today")) }),
-  v.strictObject({ to: daysAgo }),
+  describe(daysAgo, "The single day that many days ago."),
+  describe(
+    v.strictObject({ from: isoDate, to: v.optional(isoDate) }),
+    "On or after `from`, and on or before `to` when it is given.",
+  ),
+  describe(
+    v.strictObject({ from: v.optional(isoDate), to: isoDate }),
+    "On or before `to`.",
+  ),
+  describe(
+    v.strictObject({ from: daysAgo, to: v.optional(v.literal("today")) }),
+    "The last n days: on or after the day n days ago.",
+  ),
+  describe(
+    v.strictObject({ to: daysAgo }),
+    "On or before the day n days ago.",
+  ),
 ]);
 
 // The forward-looking forms are added only here: Redmine types created_on,
@@ -46,10 +62,19 @@ const pastDateFilter = v.union([
 const dateFilter = v.union([
   ...pastDateFilter.options,
   futureDatePeriod,
-  daysFromNow,
-  v.strictObject({ from: daysFromNow }),
-  v.strictObject({ to: daysFromNow }),
-  v.strictObject({ from: v.literal("today"), to: daysFromNow }),
+  describe(daysFromNow, "The single day that many days from now."),
+  describe(
+    v.strictObject({ from: daysFromNow }),
+    "On or after the day n days from now.",
+  ),
+  describe(
+    v.strictObject({ to: daysFromNow }),
+    "On or before the day n days from now.",
+  ),
+  describe(
+    v.strictObject({ from: v.literal("today"), to: daysFromNow }),
+    "The next n days: today through the day n days from now.",
+  ),
 ]);
 
 export const listInput = v.object({

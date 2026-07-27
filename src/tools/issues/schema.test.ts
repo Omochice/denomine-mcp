@@ -66,11 +66,52 @@ Deno.test("the :date_past fields reject future-looking filters", () => {
   );
 });
 
-Deno.test("the date filters survive the JSON Schema the server advertises", () => {
+type Branch = {
+  type?: string;
+  description?: string;
+  properties?: { action?: { const?: unknown } };
+};
+
+function listProperties(): Record<string, { anyOf?: Branch[] }> {
   const json = toObjectSchema(issueInputSchema("readonly"));
-  const list = json.oneOf.find((branch) =>
-    (branch as { properties?: { action?: { const?: unknown } } }).properties
-      ?.action?.const === "list"
-  ) as { properties: Record<string, unknown> };
-  assert(list.properties.createdOn !== undefined);
+  const list = (json.oneOf as Branch[])
+    .find((branch) => branch.properties?.action?.const === "list");
+  assert(list !== undefined, "the list action should be advertised");
+  return (list as unknown as {
+    properties: Record<string, { anyOf?: Branch[] }>;
+  }).properties;
+}
+
+Deno.test("the date filters survive the JSON Schema the server advertises", () => {
+  assert(listProperties().createdOn !== undefined);
+});
+
+Deno.test("every date filter form advertises what it means", () => {
+  const properties = listProperties();
+  let described = 0;
+  for (
+    const field of [
+      "startDate",
+      "dueDate",
+      "createdOn",
+      "updatedOn",
+      "closedOn",
+    ]
+  ) {
+    for (const form of properties[field].anyOf ?? []) {
+      if (form.type !== "object") {
+        continue;
+      }
+      described += 1;
+      assert(
+        form.description !== undefined,
+        `${field} advertises a form with no description: ${
+          JSON.stringify(form)
+        }`,
+      );
+    }
+  }
+  const pastForms = 5;
+  const futureForms = 4;
+  assertEquals(described, 5 * pastForms + 2 * futureForms);
 });
