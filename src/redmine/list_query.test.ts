@@ -60,6 +60,19 @@ Deno.test("relative bounds pass through untouched", () => {
   );
 });
 
+Deno.test("the associations to list are handed over as Redmine names them", () => {
+  assertEquals(
+    toListQuery({ projectId: 1, include: ["attachments", "relations"] }),
+    { projectId: 1, include: ["attachments", "relations"] },
+  );
+});
+
+Deno.test("an empty include list leaves the parameter off", () => {
+  const query = toListQuery({ projectId: 1, include: [] });
+  assertEquals(query, { projectId: 1 });
+  assert(!Object.hasOwn(query, "include"));
+});
+
 Deno.test("a filter the caller omitted stays absent, never a set-to-undefined key", () => {
   const query = toListQuery({ projectId: 1 });
   assertEquals(query, { projectId: 1 });

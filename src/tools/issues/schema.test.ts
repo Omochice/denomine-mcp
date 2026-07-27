@@ -24,6 +24,23 @@ Deno.test("show keeps the associations it was asked to include", () => {
   });
 });
 
+Deno.test("list keeps the associations it was asked to include", () => {
+  const parsed = v.parse(issueInputSchema("readonly"), {
+    action: "list",
+    include: ["attachments"],
+  });
+  assertEquals(parsed, { action: "list", include: ["attachments"] });
+});
+
+Deno.test("list rejects an association only show can fetch", () => {
+  assert(
+    !v.safeParse(issueInputSchema("readonly"), {
+      action: "list",
+      include: ["journals"],
+    }).success,
+  );
+});
+
 Deno.test("show rejects an association Redmine does not have", () => {
   assert(
     !v.safeParse(issueInputSchema("readonly"), {

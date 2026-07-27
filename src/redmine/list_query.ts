@@ -3,6 +3,7 @@ import type {
   ListIssueQuery,
   PastDateFilter as LibraryPastDateFilter,
 } from "@omochice/redmine/issues/type";
+import { toListIncludes } from "./include.ts";
 import type {
   DateFilter,
   DatePeriod,
@@ -22,9 +23,19 @@ import type {
  * the wire.
  */
 export function toListQuery(query: IssueListQuery): ListIssueQuery {
-  const { startDate, dueDate, createdOn, updatedOn, closedOn, ...rest } = query;
+  const {
+    include,
+    startDate,
+    dueDate,
+    createdOn,
+    updatedOn,
+    closedOn,
+    ...rest
+  } = query;
+  const includes = toListIncludes(include);
   return {
     ...rest,
+    ...(includes === undefined ? {} : { include: includes }),
     ...(startDate === undefined ? {} : { startDate: toFilter(startDate) }),
     ...(dueDate === undefined ? {} : { dueDate: toFilter(dueDate) }),
     ...(createdOn === undefined ? {} : { createdOn: toFilter(createdOn) }),

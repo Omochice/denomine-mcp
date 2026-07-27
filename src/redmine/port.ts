@@ -71,7 +71,14 @@ export type DateFilter =
   | { to: { daysFromNow: number } }
   | { from: "today"; to: { daysFromNow: number } };
 
+/**
+ * An association Redmine will add to a listed issue. The list endpoint carries
+ * only these two, unlike {@link IssueInclude} for a single issue.
+ */
+export type IssueListInclude = "attachments" | "relations";
+
 export type IssueListQuery = {
+  include?: IssueListInclude[];
   projectId?: number;
   trackerId?: number;
   statusId?: "open" | "closed" | "*" | number;

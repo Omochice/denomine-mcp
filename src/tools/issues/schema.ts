@@ -79,6 +79,12 @@ const dateFilter = v.union([
 
 export const listInput = v.object({
   action: v.literal("list"),
+  include: v.optional(
+    describe(
+      v.array(v.picklist(["attachments", "relations"])),
+      "Associations Redmine omits unless asked for. A listed issue carries only these two; `journals` are available through `show`.",
+    ),
+  ),
   projectId: v.optional(v.number()),
   trackerId: v.optional(v.number()),
   statusId: v.optional(
