@@ -13,10 +13,6 @@ crate-type = ["cdylib"]
 # docs point anything needing more than `v1` straight at `keyring-core` plus the
 # desired stores, which is what this crate does.
 keyring-core = "1"
-# Enumeration is not exposed by `keyring`, so `keyring_list` queries the macOS
-# keychain through the Security framework directly. Pinned to the major version
-# already resolved via the Apple store to avoid a second copy.
-security-framework = "3"
 
 # The store crates are selected per target rather than per feature so that no
 # platform pulls in another platform's backend. The `cfg` expressions mirror

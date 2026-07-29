@@ -549,7 +549,6 @@ version = "0.1.0"
 dependencies = [
  "apple-native-keyring-store",
  "keyring-core",
- "security-framework",
  "windows-native-keyring-store",
  "zbus-secret-service-keyring-store",
 ]

@@ -1,17 +1,12 @@
-//! Minimal C-ABI wrapper over the `keyring` crate for the Deno FFI binding.
-//! Implements ADR-0003: a Rust `keyring` crate reachable from Deno via `dlopen`.
+//! Minimal C-ABI wrapper over `keyring-core` for the Deno FFI binding.
+//! Implements ADR-0003: the Rust keyring stack reached from Deno via `dlopen`.
 
+use std::collections::HashMap;
 use std::ffi::{c_char, c_int, CStr, CString};
 use std::ptr;
 use std::sync::Once;
 
 use keyring_core::Entry;
-use security_framework::item::{ItemClass, ItemSearchOptions, Limit};
-
-/// `errSecItemNotFound` from the macOS Security framework. The keychain reports
-/// an empty match as this error rather than an empty result set, so we treat it
-/// as "no accounts" instead of a failure.
-const ERR_SEC_ITEM_NOT_FOUND: i32 = -25300;
 
 static STORE: Once = Once::new();
 
@@ -121,36 +116,34 @@ pub extern "C" fn keyring_list(service: *const c_char) -> *mut c_char {
         return ptr::null_mut();
     };
 
-    // The `keyring` crate cannot enumerate items, so we query the macOS keychain
-    // directly. `ItemSearchOptions` offers no per-service filter, so we request
-    // every generic-password's attributes and match the service ("svce") in
-    // code. Only attributes are loaded, not the passwords, to avoid unlock
-    // prompts for secrets we never read.
-    let results = ItemSearchOptions::new()
-        .class(ItemClass::generic_password())
-        .load_attributes(true)
-        .limit(Limit::All)
-        .search();
-    let results = match results {
-        Ok(results) => results,
-        Err(error) if error.code() == ERR_SEC_ITEM_NOT_FOUND => Vec::new(),
+    ensure_store();
+
+    // The spec is left empty and the service is matched below rather than being
+    // pushed into the query, because the stores disagree on how to express it:
+    // the Apple store takes a `service` key, while the Windows one takes only a
+    // regular expression over the whole target name and rejects `service` as
+    // invalid. An empty spec means "every credential" everywhere, which is the
+    // one request all of them understand. Matching in code is also what this
+    // function already did, so it costs no more than before.
+    let entries = match Entry::search(&HashMap::new()) {
+        Ok(entries) => entries,
         Err(_) => return ptr::null_mut(),
     };
 
     let mut accounts: Vec<String> = Vec::new();
-    for result in results {
-        let Some(attributes) = result.simplify_dict() else {
+    for entry in entries {
+        // Credentials a store cannot name in `<service, user>` terms are not
+        // ours, since ours were written through that same naming.
+        let Some((found, account)) = entry.get_specifiers() else {
             continue;
         };
-        if attributes.get("svce").map(String::as_str) != Some(service.as_str()) {
+        if found != service {
             continue;
         }
-        // Skip items without an account, and dedupe so a duplicated keychain
-        // entry never yields the same endpoint twice.
-        if let Some(account) = attributes.get("acct") {
-            if !accounts.iter().any(|existing| existing == account) {
-                accounts.push(account.clone());
-            }
+        // Dedupe so a duplicated keychain entry never yields the same endpoint
+        // twice.
+        if !accounts.iter().any(|existing| existing == &account) {
+            accounts.push(account);
         }
     }
 
