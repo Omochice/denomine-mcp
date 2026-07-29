@@ -7,8 +7,25 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-keyring = { version = "3", features = ["apple-native"] }
+# The `keyring` facade is deliberately not used. Its `v1` module is the only
+# API it re-exports and that has no search, while the `cli` feature that does
+# expose one drags in the sqlite-backed `db-keystore` (a ~14 MB cdylib). Its own
+# docs point anything needing more than `v1` straight at `keyring-core` plus the
+# desired stores, which is what this crate does.
+keyring-core = "1"
 # Enumeration is not exposed by `keyring`, so `keyring_list` queries the macOS
 # keychain through the Security framework directly. Pinned to the major version
-# already resolved via keyring's `apple-native` feature to avoid a second copy.
+# already resolved via the Apple store to avoid a second copy.
 security-framework = "3"
+
+# The store crates are selected per target rather than per feature so that no
+# platform pulls in another platform's backend. The `cfg` expressions mirror
+# those `keyring` itself uses, to stay on its supported combinations.
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+apple-native-keyring-store = { version = "1", features = ["keychain"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-native-keyring-store = "1"
+
+[target.'cfg(all(unix, not(any(target_os = "macos", target_os = "ios", target_os = "android"))))'.dependencies]
+zbus-secret-service-keyring-store = { version = "1", features = ["crypto-rust"] }
