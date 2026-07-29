@@ -15,15 +15,22 @@ const SYMBOLS = {
   keyring_string_free: { parameters: ["pointer"], result: "void" },
 } as const satisfies Deno.ForeignLibraryInterface;
 
-/** The dynamic-library extension for the current platform. */
-function dylibExtension(): string {
+/**
+ * The `cdylib` file name Cargo emits for the current platform.
+ *
+ * The extension is not the only thing that varies: the MSVC toolchain emits a
+ * bare `keyring_ffi.dll`, while Unix toolchains prefix the crate name with
+ * `lib`. Naming each platform's file in full keeps that difference visible
+ * rather than hiding it in a prefix that only happens to be right twice.
+ */
+function dylibName(): string {
   switch (Deno.build.os) {
     case "windows":
-      return "dll";
+      return "keyring_ffi.dll";
     case "darwin":
-      return "dylib";
+      return "libkeyring_ffi.dylib";
     default:
-      return "so";
+      return "libkeyring_ffi.so";
   }
 }
 
@@ -34,13 +41,16 @@ function dylibExtension(): string {
  * A `deno compile` binary embeds the dylib with `--include`; resolving the
  * path from the extracted temp directory of a compiled binary is a follow-up
  * (see ADR-0003).
+ *
+ * The URL is handed to `Deno.dlopen` as-is rather than through `pathname`,
+ * which on Windows yields a leading-slash path (`/C:/...`) that cannot be
+ * opened.
  */
-function dylibPath(): string {
-  const name = `libkeyring_ffi.${dylibExtension()}`;
+function dylibUrl(): URL {
   return new URL(
-    `../../ffi/target/release/${name}`,
+    `../../ffi/target/release/${dylibName()}`,
     import.meta.url,
-  ).pathname;
+  );
 }
 
 /** Encode a string as a NUL-terminated C string buffer. */
@@ -56,7 +66,7 @@ export class FfiKeyring implements Keyring {
   readonly #lib: Deno.DynamicLibrary<typeof SYMBOLS>;
 
   constructor() {
-    this.#lib = Deno.dlopen(dylibPath(), SYMBOLS);
+    this.#lib = Deno.dlopen(dylibUrl(), SYMBOLS);
   }
 
   get(account: string): Promise<string | undefined> {
