@@ -4,13 +4,22 @@
 use std::collections::HashMap;
 use std::ffi::{c_char, c_int, CStr, CString};
 use std::ptr;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Once;
 
 use keyring_core::Entry;
 
-static STORE: Once = Once::new();
+/// The platform's credential store could not be opened at all, as opposed to
+/// the store refusing one operation. Reported separately because the two ask
+/// for different responses: an absent Secret Service provider on Linux is the
+/// user's to install, whereas a refused write is about the credential.
+const ERR_NO_STORE: c_int = -3;
 
-/// Install the platform's credential store as `keyring-core`'s default.
+static STORE: Once = Once::new();
+static STORE_READY: AtomicBool = AtomicBool::new(false);
+
+/// Install the platform's credential store as `keyring-core`'s default, and
+/// report whether one is available.
 ///
 /// `keyring-core` holds no store until one is registered, so every exported
 /// function calls this first: a `cdylib` has no initialisation hook of its own
@@ -19,7 +28,7 @@ static STORE: Once = Once::new();
 /// On Linux the Secret Service is chosen over kernel keyutils because keyutils
 /// keys do not outlive the session, and a credential that disappears at logout
 /// is not the persistent keyring ADR-0003 asks for.
-fn ensure_store() {
+fn ensure_store() -> bool {
     STORE.call_once(|| {
         #[cfg(any(target_os = "macos", target_os = "ios"))]
         let store = apple_native_keyring_store::keychain::Store::new();
@@ -33,8 +42,10 @@ fn ensure_store() {
 
         if let Ok(store) = store {
             keyring_core::set_default_store(store);
+            STORE_READY.store(true, Ordering::Release);
         }
     });
+    STORE_READY.load(Ordering::Acquire)
 }
 
 /// Convert a borrowed C string into an owned Rust `String`.
@@ -49,7 +60,8 @@ unsafe fn to_string(p: *const c_char) -> Option<String> {
 }
 
 /// Store `password` for (`service`, `account`) in the OS keyring.
-/// Returns 0 on success, negative on failure.
+/// Returns 0 on success, `ERR_NO_STORE` if no credential store is available,
+/// and other negative values on failure.
 #[no_mangle]
 pub extern "C" fn keyring_set(
     service: *const c_char,
@@ -63,7 +75,9 @@ pub extern "C" fn keyring_set(
     }) else {
         return -1;
     };
-    ensure_store();
+    if !ensure_store() {
+        return ERR_NO_STORE;
+    }
     match Entry::new(&service, &account).and_then(|e| e.set_password(&password)) {
         Ok(()) => 0,
         Err(_) => -2,
@@ -73,6 +87,10 @@ pub extern "C" fn keyring_set(
 /// Read the password for (`service`, `account`).
 /// Returns a heap-allocated C string the caller must free with
 /// `keyring_string_free`, or null on failure.
+///
+/// Null is the only failure this signature can express, so an unavailable
+/// store is indistinguishable here from an account that has no credential.
+/// `keyring_set` reports the difference, which is where a caller acts on it.
 #[no_mangle]
 pub extern "C" fn keyring_get(service: *const c_char, account: *const c_char) -> *mut c_char {
     let (Some(service), Some(account)) =
@@ -80,7 +98,9 @@ pub extern "C" fn keyring_get(service: *const c_char, account: *const c_char) ->
     else {
         return ptr::null_mut();
     };
-    ensure_store();
+    if !ensure_store() {
+        return ptr::null_mut();
+    }
     match Entry::new(&service, &account).and_then(|e| e.get_password()) {
         Ok(password) => CString::new(password)
             .map(CString::into_raw)
@@ -90,8 +110,9 @@ pub extern "C" fn keyring_get(service: *const c_char, account: *const c_char) ->
 }
 
 /// Delete the stored password for (`service`, `account`).
-/// Returns 0 on success, negative on failure. A missing entry counts as success
-/// so that deletion is idempotent, matching the `Keyring` port contract.
+/// Returns 0 on success, `ERR_NO_STORE` if no credential store is available,
+/// and other negative values on failure. A missing entry counts as success so
+/// that deletion is idempotent, matching the `Keyring` port contract.
 #[no_mangle]
 pub extern "C" fn keyring_delete(service: *const c_char, account: *const c_char) -> c_int {
     let (Some(service), Some(account)) =
@@ -99,7 +120,9 @@ pub extern "C" fn keyring_delete(service: *const c_char, account: *const c_char)
     else {
         return -1;
     };
-    ensure_store();
+    if !ensure_store() {
+        return ERR_NO_STORE;
+    }
     match Entry::new(&service, &account).and_then(|e| e.delete_credential()) {
         Ok(()) => 0,
         Err(keyring_core::Error::NoEntry) => 0,
@@ -116,7 +139,9 @@ pub extern "C" fn keyring_list(service: *const c_char) -> *mut c_char {
         return ptr::null_mut();
     };
 
-    ensure_store();
+    if !ensure_store() {
+        return ptr::null_mut();
+    }
 
     // The spec is left empty and the service is matched below rather than being
     // pushed into the query, because the stores disagree on how to express it:
