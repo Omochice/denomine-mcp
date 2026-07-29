@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — 2026-07-12. Carries forward the former ADR 0003.
+Accepted (refined by [ADR-0009](./0009-design-evolution-from-0003.md)) — 2026-07-12. Carries forward the former ADR 0003.
 
 ## Context
 
