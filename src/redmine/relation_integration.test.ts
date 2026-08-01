@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { RedmineClient } from "./client.ts";
 import { RelationClient } from "./relation_client.ts";
@@ -38,15 +38,15 @@ Deno.test({
         priorityId: 2,
         subject,
       });
-      assert(Result.isSuccess(created), JSON.stringify(created));
+      expect(Result.isSuccess(created), JSON.stringify(created)).toBe(true);
       const listed = await issues.list({ projectId });
-      assert(Result.isSuccess(listed));
+      expect(Result.isSuccess(listed)).toBe(true);
       const found = (Result.unwrap(listed) as { id: number; subject: string }[])
         .find(
           (issue) => issue.subject === subject,
         );
-      assert(found !== undefined, `created issue ${subject} not found`);
-      return found.id;
+      expect(found, `created issue ${subject} not found`).toBeDefined();
+      return found!.id;
     };
 
     const stamp = Date.now();
@@ -60,31 +60,31 @@ Deno.test({
           issueToId: toId,
           relationType: "relates",
         });
-        assert(Result.isSuccess(result), JSON.stringify(result));
+        expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
       });
 
       await t.step("list finds the relation", async () => {
         const result = await relations.list(fromId);
-        assert(Result.isSuccess(result));
+        expect(Result.isSuccess(result)).toBe(true);
         const found =
           (Result.unwrap(result) as { id: number; issueToId: number }[])
             .find((relation) => relation.issueToId === toId);
-        assert(found !== undefined, "created relation not found in list");
-        relationId = found.id;
+        expect(found, "created relation not found in list").toBeDefined();
+        relationId = found!.id;
       });
 
       await t.step("show returns the relation", async () => {
         const result = await relations.show(relationId);
-        assert(Result.isSuccess(result));
-        assertEquals((Result.unwrap(result) as { id: number }).id, relationId);
+        expect(Result.isSuccess(result)).toBe(true);
+        expect((Result.unwrap(result) as { id: number }).id).toBe(relationId);
       });
 
       await t.step("delete removes the relation", async () => {
         const deleted = await relations.delete(relationId);
-        assert(Result.isSuccess(deleted), JSON.stringify(deleted));
+        expect(Result.isSuccess(deleted), JSON.stringify(deleted)).toBe(true);
         const listed = await relations.list(fromId);
-        assert(Result.isSuccess(listed));
-        assertEquals((Result.unwrap(listed) as unknown[]).length, 0);
+        expect(Result.isSuccess(listed)).toBe(true);
+        expect((Result.unwrap(listed) as unknown[]).length).toBe(0);
       });
     } finally {
       await issues.delete(fromId);

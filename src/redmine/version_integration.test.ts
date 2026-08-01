@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { VersionClient } from "./version_client.ts";
 
@@ -33,40 +33,40 @@ Deno.test({
         name,
         status: "open",
       });
-      assert(Result.isSuccess(result), JSON.stringify(result));
+      expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
     });
 
     await t.step("list finds the created version", async () => {
       const result = await client.list(projectId);
-      assert(Result.isSuccess(result));
+      expect(Result.isSuccess(result)).toBe(true);
       const versions = Result.unwrap(result) as { id: number; name: string }[];
       const found = versions.find((version) => version.name === name);
-      assert(found !== undefined, "created version not found in list");
-      id = found.id;
+      expect(found, "created version not found in list").toBeDefined();
+      id = found!.id;
     });
 
     await t.step("show returns the version", async () => {
       const result = await client.show(id);
-      assert(Result.isSuccess(result));
-      assertEquals((Result.unwrap(result) as { name: string }).name, name);
+      expect(Result.isSuccess(result)).toBe(true);
+      expect((Result.unwrap(result) as { name: string }).name).toBe(name);
     });
 
     await t.step("update changes the status", async () => {
       const updated = await client.update(id, { status: "closed" });
-      assert(Result.isSuccess(updated), JSON.stringify(updated));
+      expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
       const shown = await client.show(id);
-      assert(Result.isSuccess(shown));
-      assertEquals(
-        (Result.unwrap(shown) as { status: string }).status,
+      expect(Result.isSuccess(shown)).toBe(true);
+      expect((Result.unwrap(shown) as { status: string }).status).toBe(
         "closed",
       );
     });
 
     await t.step("delete removes the version", async () => {
       const deleted = await client.delete(id);
-      assert(Result.isSuccess(deleted), JSON.stringify(deleted));
+      expect(Result.isSuccess(deleted), JSON.stringify(deleted)).toBe(true);
       const shown = await client.show(id);
-      assert(Result.isFailure(shown), "version should be gone after delete");
+      expect(Result.isFailure(shown), "version should be gone after delete")
+        .toBe(true);
     });
   },
 });

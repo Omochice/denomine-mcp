@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { FakeVersionPort } from "../../redmine/fake.ts";
 import { handleVersion } from "./handler.ts";
 
@@ -16,7 +16,7 @@ Deno.test("version handler runs a full CRUD cycle against the port", async (t) =
       name: "v1.0",
       dueDate: "2026-08-01",
     });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
   });
 
   await t.step("list returns the created version", async () => {
@@ -27,7 +27,7 @@ Deno.test("version handler runs a full CRUD cycle against the port", async (t) =
     const { versions } = JSON.parse(textOf(response)) as {
       versions: { id: number; name: string }[];
     };
-    assertEquals(versions.map((version) => version.name), ["v1.0"]);
+    expect(versions.map((version) => version.name)).toStrictEqual(["v1.0"]);
   });
 
   await t.step("show returns the version by id", async () => {
@@ -35,7 +35,7 @@ Deno.test("version handler runs a full CRUD cycle against the port", async (t) =
     const { version } = JSON.parse(textOf(response)) as {
       version: { name: string };
     };
-    assertEquals(version.name, "v1.0");
+    expect(version.name).toBe("v1.0");
   });
 
   await t.step("update changes the status", async () => {
@@ -44,19 +44,19 @@ Deno.test("version handler runs a full CRUD cycle against the port", async (t) =
       id: 1,
       status: "closed",
     });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
     const shown = await handleVersion(port, { action: "show", id: 1 });
     const { version } = JSON.parse(textOf(shown)) as {
       version: { status: string };
     };
-    assertEquals(version.status, "closed");
+    expect(version.status).toBe("closed");
   });
 
   await t.step("delete removes the version", async () => {
     const response = await handleVersion(port, { action: "delete", id: 1 });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
     const shown = await handleVersion(port, { action: "show", id: 1 });
-    assertEquals(shown.isError, true);
+    expect(shown.isError).toBe(true);
   });
 });
 
@@ -67,5 +67,5 @@ Deno.test("version handler surfaces a validation failure as isError", async () =
     projectId: 1,
     name: "   ",
   });
-  assertEquals(response.isError, true);
+  expect(response.isError).toBe(true);
 });

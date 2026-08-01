@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { FakeIssuePort } from "../../redmine/fake.ts";
 import { handleIssue } from "./handler.ts";
 
@@ -18,7 +18,7 @@ Deno.test("issue handler runs a full CRUD cycle against the port", async (t) => 
       priorityId: 2,
       subject: "first",
     });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
   });
 
   await t.step("list returns the created issue", async () => {
@@ -26,8 +26,8 @@ Deno.test("issue handler runs a full CRUD cycle against the port", async (t) => 
     const { issues } = JSON.parse(textOf(response)) as {
       issues: { id: number; subject: string }[];
     };
-    assertEquals(issues.length, 1);
-    assertEquals(issues[0].subject, "first");
+    expect(issues.length).toBe(1);
+    expect(issues[0].subject).toBe("first");
   });
 
   await t.step("show returns the issue by id", async () => {
@@ -35,7 +35,7 @@ Deno.test("issue handler runs a full CRUD cycle against the port", async (t) => 
     const { issue } = JSON.parse(textOf(response)) as {
       issue: { subject: string };
     };
-    assertEquals(issue.subject, "first");
+    expect(issue.subject).toBe("first");
   });
 
   await t.step("update changes the subject", async () => {
@@ -44,12 +44,12 @@ Deno.test("issue handler runs a full CRUD cycle against the port", async (t) => 
       id: 1,
       subject: "second",
     });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
     const shown = await handleIssue(port, { action: "show", id: 1 });
     const { issue } = JSON.parse(textOf(shown)) as {
       issue: { subject: string };
     };
-    assertEquals(issue.subject, "second");
+    expect(issue.subject).toBe("second");
   });
 
   await t.step(
@@ -58,11 +58,10 @@ Deno.test("issue handler runs a full CRUD cycle against the port", async (t) => 
       await handleIssue(port, { action: "update", id: 1, notes: "a comment" });
 
       const plain = await handleIssue(port, { action: "show", id: 1 });
-      assertEquals(
+      expect(
         (JSON.parse(textOf(plain)) as { issue: { journals?: unknown } }).issue
           .journals,
-        undefined,
-      );
+      ).toBe(undefined);
 
       const withJournals = await handleIssue(port, {
         action: "show",
@@ -72,7 +71,7 @@ Deno.test("issue handler runs a full CRUD cycle against the port", async (t) => 
       const { issue } = JSON.parse(textOf(withJournals)) as {
         issue: { journals: { notes: string }[] };
       };
-      assertEquals(issue.journals.map((journal) => journal.notes), [
+      expect(issue.journals.map((journal) => journal.notes)).toStrictEqual([
         "a comment",
       ]);
     },
@@ -80,9 +79,9 @@ Deno.test("issue handler runs a full CRUD cycle against the port", async (t) => 
 
   await t.step("delete removes the issue", async () => {
     const response = await handleIssue(port, { action: "delete", id: 1 });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
     const shown = await handleIssue(port, { action: "show", id: 1 });
-    assertEquals(shown.isError, true);
+    expect(shown.isError).toBe(true);
   });
 });
 
@@ -96,7 +95,7 @@ Deno.test("issue handler surfaces a validation failure as isError", async () => 
     priorityId: 2,
     subject: "   ",
   });
-  assertEquals(response.isError, true);
+  expect(response.isError).toBe(true);
   const error = JSON.parse(textOf(response)) as { status: number };
-  assertEquals(error.status, 422);
+  expect(error.status).toBe(422);
 });

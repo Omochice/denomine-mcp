@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { WikiClient } from "./wiki_client.ts";
 
@@ -32,13 +32,13 @@ Deno.test({
         title,
         text: "created by the wiki integration test",
       });
-      assert(Result.isSuccess(result), JSON.stringify(result));
+      expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
     });
 
     await t.step("show returns the page", async () => {
       const result = await client.show(projectId, title);
-      assert(Result.isSuccess(result), JSON.stringify(result));
-      assertEquals((Result.unwrap(result) as { title: string }).title, title);
+      expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
+      expect((Result.unwrap(result) as { title: string }).title).toBe(title);
     });
 
     await t.step("update changes the text", async () => {
@@ -46,20 +46,20 @@ Deno.test({
         title,
         text: "edited by the wiki integration test",
       });
-      assert(Result.isSuccess(updated), JSON.stringify(updated));
+      expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
       const shown = await client.show(projectId, title);
-      assert(Result.isSuccess(shown));
-      assertEquals(
-        (Result.unwrap(shown) as { text: string }).text,
+      expect(Result.isSuccess(shown)).toBe(true);
+      expect((Result.unwrap(shown) as { text: string }).text).toBe(
         "edited by the wiki integration test",
       );
     });
 
     await t.step("delete removes the page", async () => {
       const deleted = await client.delete(projectId, title);
-      assert(Result.isSuccess(deleted), JSON.stringify(deleted));
+      expect(Result.isSuccess(deleted), JSON.stringify(deleted)).toBe(true);
       const shown = await client.show(projectId, title);
-      assert(Result.isFailure(shown), "page should be gone after delete");
+      expect(Result.isFailure(shown), "page should be gone after delete")
+        .toBe(true);
     });
   },
 });

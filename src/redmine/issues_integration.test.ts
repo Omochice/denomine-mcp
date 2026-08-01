@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { RedmineClient } from "./client.ts";
 
@@ -40,33 +40,32 @@ Deno.test({
         priorityId: 2,
         subject,
       });
-      assert(Result.isSuccess(result), JSON.stringify(result));
+      expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
     });
 
     await t.step("list finds the created issue", async () => {
       const result = await client.list({ projectId });
-      assert(Result.isSuccess(result));
+      expect(Result.isSuccess(result)).toBe(true);
       const issues = Result.unwrap(result) as { id: number; subject: string }[];
       const found = issues.find((issue) => issue.subject === subject);
-      assert(found !== undefined, "created issue not found in list");
-      id = found.id;
+      expect(found, "created issue not found in list").toBeDefined();
+      id = found!.id;
     });
 
     await t.step("list filtered by creation date finds it", async () => {
       const result = await client.list({ projectId, createdOn: "today" });
-      assert(Result.isSuccess(result), JSON.stringify(result));
+      expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
       const issues = Result.unwrap(result) as { id: number }[];
-      assert(
+      expect(
         issues.some((issue) => issue.id === id),
         "issue created moments ago not matched by createdOn: today",
-      );
+      ).toBe(true);
     });
 
     await t.step("show returns the issue", async () => {
       const result = await client.show(id);
-      assert(Result.isSuccess(result));
-      assertEquals(
-        (Result.unwrap(result) as { subject: string }).subject,
+      expect(Result.isSuccess(result)).toBe(true);
+      expect((Result.unwrap(result) as { subject: string }).subject).toBe(
         subject,
       );
     });
@@ -75,20 +74,20 @@ Deno.test({
       const updated = await client.update(id, {
         subject: `${subject} (edited)`,
       });
-      assert(Result.isSuccess(updated), JSON.stringify(updated));
+      expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
       const shown = await client.show(id);
-      assert(Result.isSuccess(shown));
-      assertEquals(
-        (Result.unwrap(shown) as { subject: string }).subject,
+      expect(Result.isSuccess(shown)).toBe(true);
+      expect((Result.unwrap(shown) as { subject: string }).subject).toBe(
         `${subject} (edited)`,
       );
     });
 
     await t.step("delete removes the issue", async () => {
       const deleted = await client.delete(id);
-      assert(Result.isSuccess(deleted), JSON.stringify(deleted));
+      expect(Result.isSuccess(deleted), JSON.stringify(deleted)).toBe(true);
       const shown = await client.show(id);
-      assert(Result.isFailure(shown), "issue should be gone after delete");
+      expect(Result.isFailure(shown), "issue should be gone after delete")
+        .toBe(true);
     });
   },
 });

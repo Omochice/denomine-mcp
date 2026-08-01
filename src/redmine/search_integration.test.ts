@@ -1,4 +1,4 @@
-import { assert } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { SearchClient } from "./search_client.ts";
 
@@ -27,7 +27,7 @@ Deno.test({
   fn: async () => {
     const client = new SearchClient({ endpoint: endpoint!, apiKey: apiKey! });
     const result = await client.search({ q: query });
-    assert(Result.isSuccess(result), JSON.stringify(result));
-    assert(Array.isArray(Result.unwrap(result)));
+    expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
+    expect(Array.isArray(Result.unwrap(result))).toBe(true);
   },
 });

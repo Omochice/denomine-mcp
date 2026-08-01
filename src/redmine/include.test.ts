@@ -1,19 +1,19 @@
-import { assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { toIncludes } from "./include.ts";
 
 Deno.test("nothing to include is nothing to ask for", () => {
-  assertEquals(toIncludes(undefined), undefined);
-  assertEquals(toIncludes([]), undefined);
+  expect(toIncludes(undefined)).toBe(undefined);
+  expect(toIncludes([])).toBe(undefined);
 });
 
 Deno.test("an association keeps its name", () => {
-  assertEquals(toIncludes(["journals"]), ["journals"]);
-  assertEquals(toIncludes(["journals", "attachments"]), [
+  expect(toIncludes(["journals"])).toStrictEqual(["journals"]);
+  expect(toIncludes(["journals", "attachments"])).toStrictEqual([
     "journals",
     "attachments",
   ]);
 });
 
 Deno.test("the one association Redmine spells with an underscore is renamed", () => {
-  assertEquals(toIncludes(["allowedStatuses"]), ["allowed_statuses"]);
+  expect(toIncludes(["allowedStatuses"])).toStrictEqual(["allowed_statuses"]);
 });

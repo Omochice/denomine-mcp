@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { RedmineResponseError } from "@omochice/redmine/error";
 import { toRedmineError } from "./error.ts";
 
@@ -10,7 +10,7 @@ Deno.test("toRedmineError extracts the status and Redmine errors array", () => {
       errors: ["Subject cannot be blank", "Tracker is invalid"],
     }),
   );
-  assertEquals(toRedmineError(error), {
+  expect(toRedmineError(error)).toStrictEqual({
     status: 422,
     errors: ["Subject cannot be blank", "Tracker is invalid"],
   });
@@ -19,7 +19,7 @@ Deno.test("toRedmineError extracts the status and Redmine errors array", () => {
 Deno.test("toRedmineError yields status only when the body has no errors array", async (t) => {
   await t.step("empty body (e.g. 404)", () => {
     const error = new RedmineResponseError(404, "Not Found", "");
-    assertEquals(toRedmineError(error), { status: 404, errors: [] });
+    expect(toRedmineError(error)).toStrictEqual({ status: 404, errors: [] });
   });
 
   await t.step("non-JSON body", () => {
@@ -28,7 +28,7 @@ Deno.test("toRedmineError yields status only when the body has no errors array",
       "Internal Server Error",
       "<html>nope</html>",
     );
-    assertEquals(toRedmineError(error), { status: 500, errors: [] });
+    expect(toRedmineError(error)).toStrictEqual({ status: 500, errors: [] });
   });
 
   await t.step("JSON body without an errors array", () => {
@@ -37,7 +37,7 @@ Deno.test("toRedmineError yields status only when the body has no errors array",
       "Forbidden",
       JSON.stringify({ message: "denied" }),
     );
-    assertEquals(toRedmineError(error), { status: 403, errors: [] });
+    expect(toRedmineError(error)).toStrictEqual({ status: 403, errors: [] });
   });
 });
 
@@ -48,16 +48,16 @@ Deno.test("toRedmineError discloses only status and errors, never other fields",
     JSON.stringify({ errors: ["bad"] }),
   );
   const result = toRedmineError(error);
-  assertEquals(Object.keys(result).sort(), ["errors", "status"]);
+  expect(Object.keys(result).sort()).toStrictEqual(["errors", "status"]);
 });
 
 Deno.test("toRedmineError falls back to the message for a non-response error", () => {
-  assertEquals(toRedmineError(new Error("connection refused")), {
+  expect(toRedmineError(new Error("connection refused"))).toStrictEqual({
     status: 0,
     errors: ["connection refused"],
   });
 });
 
 Deno.test("toRedmineError stringifies a thrown non-Error value", () => {
-  assertEquals(toRedmineError("boom"), { status: 0, errors: ["boom"] });
+  expect(toRedmineError("boom")).toStrictEqual({ status: 0, errors: ["boom"] });
 });

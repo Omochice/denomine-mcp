@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { FakeWikiPort } from "../../redmine/fake.ts";
 import { handleWiki } from "./handler.ts";
 
@@ -16,7 +16,7 @@ Deno.test("wiki handler runs a full CRUD cycle against the port", async (t) => {
       title: "Home",
       text: "first",
     });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
   });
 
   await t.step("list returns the created page", async () => {
@@ -24,7 +24,7 @@ Deno.test("wiki handler runs a full CRUD cycle against the port", async (t) => {
     const { wiki_pages } = JSON.parse(textOf(response)) as {
       wiki_pages: { title: string }[];
     };
-    assertEquals(wiki_pages.map((page) => page.title), ["Home"]);
+    expect(wiki_pages.map((page) => page.title)).toStrictEqual(["Home"]);
   });
 
   await t.step("show returns the page by title", async () => {
@@ -36,8 +36,8 @@ Deno.test("wiki handler runs a full CRUD cycle against the port", async (t) => {
     const { wiki_page } = JSON.parse(textOf(response)) as {
       wiki_page: { text: string; version: number };
     };
-    assertEquals(wiki_page.text, "first");
-    assertEquals(wiki_page.version, 1);
+    expect(wiki_page.text).toBe("first");
+    expect(wiki_page.version).toBe(1);
   });
 
   await t.step("update bumps the version", async () => {
@@ -47,7 +47,7 @@ Deno.test("wiki handler runs a full CRUD cycle against the port", async (t) => {
       title: "Home",
       text: "second",
     });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
     const shown = await handleWiki(port, {
       action: "show",
       projectId: 1,
@@ -56,8 +56,8 @@ Deno.test("wiki handler runs a full CRUD cycle against the port", async (t) => {
     const { wiki_page } = JSON.parse(textOf(shown)) as {
       wiki_page: { text: string; version: number };
     };
-    assertEquals(wiki_page.text, "second");
-    assertEquals(wiki_page.version, 2);
+    expect(wiki_page.text).toBe("second");
+    expect(wiki_page.version).toBe(2);
   });
 
   await t.step("delete removes the page", async () => {
@@ -66,13 +66,13 @@ Deno.test("wiki handler runs a full CRUD cycle against the port", async (t) => {
       projectId: 1,
       title: "Home",
     });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
     const shown = await handleWiki(port, {
       action: "show",
       projectId: 1,
       title: "Home",
     });
-    assertEquals(shown.isError, true);
+    expect(shown.isError).toBe(true);
   });
 });
 
@@ -84,5 +84,5 @@ Deno.test("wiki handler surfaces a validation failure as isError", async () => {
     title: "   ",
     text: "body",
   });
-  assertEquals(response.isError, true);
+  expect(response.isError).toBe(true);
 });

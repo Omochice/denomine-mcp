@@ -1,25 +1,21 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { canonicalizeEndpoint } from "./endpoint.ts";
 
 Deno.test("canonicalizeEndpoint maps equivalent URLs to one account", () => {
-  assertEquals(
-    canonicalizeEndpoint("https://R.Example.com/"),
+  expect(canonicalizeEndpoint("https://R.Example.com/")).toBe(
     "https://r.example.com",
   );
-  assertEquals(
-    canonicalizeEndpoint("https://r.example.com"),
+  expect(canonicalizeEndpoint("https://r.example.com")).toBe(
     "https://r.example.com",
   );
-  assertEquals(
-    canonicalizeEndpoint("http://localhost:3000/?token=x#frag"),
+  expect(canonicalizeEndpoint("http://localhost:3000/?token=x#frag")).toBe(
     "http://localhost:3000",
   );
-  assertEquals(
-    canonicalizeEndpoint("https://host/redmine/"),
+  expect(canonicalizeEndpoint("https://host/redmine/")).toBe(
     "https://host/redmine",
   );
 });
 
 Deno.test("canonicalizeEndpoint rejects an unparseable URL", () => {
-  assertThrows(() => canonicalizeEndpoint("not a url"));
+  expect(() => canonicalizeEndpoint("not a url")).toThrow();
 });

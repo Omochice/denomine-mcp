@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { FakeRelationPort } from "../../redmine/fake.ts";
 import { handleRelation } from "./handler.ts";
 
@@ -16,7 +16,7 @@ Deno.test("relation handler runs a full create/read/delete cycle", async (t) => 
       issueToId: 2,
       relationType: "blocks",
     });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
   });
 
   await t.step("list returns the created relation", async () => {
@@ -24,8 +24,8 @@ Deno.test("relation handler runs a full create/read/delete cycle", async (t) => 
     const { relations } = JSON.parse(textOf(response)) as {
       relations: { id: number; relationType: string }[];
     };
-    assertEquals(relations.length, 1);
-    assertEquals(relations[0].relationType, "blocks");
+    expect(relations.length).toBe(1);
+    expect(relations[0].relationType).toBe("blocks");
   });
 
   await t.step("show returns the relation by id", async () => {
@@ -33,14 +33,14 @@ Deno.test("relation handler runs a full create/read/delete cycle", async (t) => 
     const { relation } = JSON.parse(textOf(response)) as {
       relation: { issueToId: number };
     };
-    assertEquals(relation.issueToId, 2);
+    expect(relation.issueToId).toBe(2);
   });
 
   await t.step("delete removes the relation", async () => {
     const response = await handleRelation(port, { action: "delete", id: 1 });
-    assert(response.isError !== true);
+    expect(response.isError).not.toBe(true);
     const shown = await handleRelation(port, { action: "show", id: 1 });
-    assertEquals(shown.isError, true);
+    expect(shown.isError).toBe(true);
   });
 });
 
@@ -52,5 +52,5 @@ Deno.test("relation handler rejects relating an issue to itself", async () => {
     issueToId: 1,
     relationType: "relates",
   });
-  assertEquals(response.isError, true);
+  expect(response.isError).toBe(true);
 });

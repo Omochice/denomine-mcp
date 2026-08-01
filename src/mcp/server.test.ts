@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1.0.18";
+import { expect } from "jsr:@std/expect@1.0.20";
 import { Client } from "npm:@modelcontextprotocol/sdk@1.29.0/client/index.js";
 import { InMemoryTransport } from "npm:@modelcontextprotocol/sdk@1.29.0/inMemory.js";
 import { buildServer } from "./server.ts";
@@ -65,7 +65,7 @@ Deno.test("MCP server drives issue CRUD over an in-memory transport", async () =
         subject: "over mcp",
       },
     }) as CallResult;
-    assert(created.isError !== true);
+    expect(created.isError).not.toBe(true);
 
     const listed = await client.callTool({
       name: "redmine_issues",
@@ -74,14 +74,14 @@ Deno.test("MCP server drives issue CRUD over an in-memory transport", async () =
     const { issues } = JSON.parse(textOf(listed)) as {
       issues: { id: number }[];
     };
-    assertEquals(issues.length, 1);
+    expect(issues.length).toBe(1);
     const id = issues[0].id;
 
     const updated = await client.callTool({
       name: "redmine_issues",
       arguments: { action: "update", id, subject: "changed" },
     }) as CallResult;
-    assert(updated.isError !== true);
+    expect(updated.isError).not.toBe(true);
 
     const shown = await client.callTool({
       name: "redmine_issues",
@@ -90,19 +90,19 @@ Deno.test("MCP server drives issue CRUD over an in-memory transport", async () =
     const { issue } = JSON.parse(textOf(shown)) as {
       issue: { subject: string };
     };
-    assertEquals(issue.subject, "changed");
+    expect(issue.subject).toBe("changed");
 
     const deleted = await client.callTool({
       name: "redmine_issues",
       arguments: { action: "delete", id },
     }) as CallResult;
-    assert(deleted.isError !== true);
+    expect(deleted.isError).not.toBe(true);
 
     const gone = await client.callTool({
       name: "redmine_issues",
       arguments: { action: "show", id },
     }) as CallResult;
-    assertEquals(gone.isError, true);
+    expect(gone.isError).toBe(true);
   } finally {
     await client.close();
   }
@@ -119,16 +119,18 @@ Deno.test("MCP server advertises and dispatches the read-only search tool", asyn
       name: string;
       inputSchema: { properties: { action: { enum: string[] } } };
     }[]).find((tool) => tool.name === "redmine_search");
-    assert(search !== undefined, "search tool should be advertised");
-    assertEquals(search.inputSchema.properties.action.enum, ["search"]);
+    expect(search, "search tool should be advertised").toBeDefined();
+    expect(search!.inputSchema.properties.action.enum).toStrictEqual([
+      "search",
+    ]);
 
     const result = await client.callTool({
       name: "redmine_search",
       arguments: { action: "search", q: "login" },
     }) as CallResult;
-    assert(result.isError !== true);
+    expect(result.isError).not.toBe(true);
     const hits = JSON.parse(textOf(result)) as { id: number }[];
-    assertEquals(hits.map((hit) => hit.id), [1]);
+    expect(hits.map((hit) => hit.id)).toStrictEqual([1]);
   } finally {
     await client.close();
   }
@@ -152,11 +154,14 @@ Deno.test("readonly mode advertises only read actions for every tool", async () 
         inputSchema: { properties: { action: { enum: string[] } } };
       }[]
     ) {
-      assertEquals(tool.inputSchema.properties.action.enum, ["list", "show"]);
-      assert(
+      expect(tool.inputSchema.properties.action.enum).toStrictEqual([
+        "list",
+        "show",
+      ]);
+      expect(
         !/create|update|delete/i.test(tool.description),
         `readonly description should not mention writes: ${tool.description}`,
-      );
+      ).toBe(true);
     }
 
     for (
@@ -171,7 +176,7 @@ Deno.test("readonly mode advertises only read actions for every tool", async () 
         name,
         arguments: { action: "create" },
       }) as CallResult;
-      assertEquals(write.isError, true, `${name} create should be rejected`);
+      expect(write.isError, `${name} create should be rejected`).toBe(true);
     }
   } finally {
     await client.close();
@@ -190,27 +195,25 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
   );
   try {
     const { tools } = await client.listTools();
-    assertEquals(
-      tools.map((tool: { name: string }) => tool.name).sort(),
-      [
+    expect(tools.map((tool: { name: string }) => tool.name).sort())
+      .toStrictEqual([
         "redmine_issue_relations",
         "redmine_issues",
         "redmine_versions",
         "redmine_wiki_pages",
-      ],
-    );
+      ]);
     for (const tool of tools as { description: string }[]) {
-      assert(
+      expect(
         /create.*delete/i.test(tool.description),
         `full-mode description should mention writes: ${tool.description}`,
-      );
+      ).toBe(true);
     }
 
     const wikiCreated = await client.callTool({
       name: "redmine_wiki_pages",
       arguments: { action: "create", projectId: 1, title: "Home", text: "hi" },
     }) as CallResult;
-    assert(wikiCreated.isError !== true);
+    expect(wikiCreated.isError).not.toBe(true);
 
     const wikiShown = await client.callTool({
       name: "redmine_wiki_pages",
@@ -219,13 +222,13 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
     const { wiki_page } = JSON.parse(textOf(wikiShown)) as {
       wiki_page: { text: string };
     };
-    assertEquals(wiki_page.text, "hi");
+    expect(wiki_page.text).toBe("hi");
 
     const versionCreated = await client.callTool({
       name: "redmine_versions",
       arguments: { action: "create", projectId: 1, name: "v1.0" },
     }) as CallResult;
-    assert(versionCreated.isError !== true);
+    expect(versionCreated.isError).not.toBe(true);
 
     const versionShown = await client.callTool({
       name: "redmine_versions",
@@ -234,13 +237,13 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
     const { version } = JSON.parse(textOf(versionShown)) as {
       version: { name: string };
     };
-    assertEquals(version.name, "v1.0");
+    expect(version.name).toBe("v1.0");
 
     const versionDeleted = await client.callTool({
       name: "redmine_versions",
       arguments: { action: "delete", id: 1 },
     }) as CallResult;
-    assert(versionDeleted.isError !== true);
+    expect(versionDeleted.isError).not.toBe(true);
   } finally {
     await client.close();
   }
