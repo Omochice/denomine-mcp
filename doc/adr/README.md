@@ -11,5 +11,6 @@ This directory records the architecture decisions for the Redmine MCP server (`d
 - [ADR-0007: Code structure — ports, fakes, and role-based modules](0007-code-structure-ports-and-modules.md)
 - [ADR-0008: Design Evolution from ADR-0002](0008-design-evolution-from-0002.md)
 - [ADR-0009: Design Evolution from ADR-0003](0009-design-evolution-from-0003.md)
+- [ADR-0010: Design Evolution from ADR-0005](0010-design-evolution-from-0005.md)
 
-ADR-0001 through 0007 consolidate an earlier set of sixteen finer-grained ADRs; each record notes in its Status which of the former ADRs it carries forward. ADR-0008 and ADR-0009 record later refinements of ADR-0002 and ADR-0003.
+ADR-0001 through 0007 consolidate an earlier set of sixteen finer-grained ADRs; each record notes in its Status which of the former ADRs it carries forward. ADR-0008 through ADR-0010 record later refinements of ADR-0002, ADR-0003, and ADR-0005.

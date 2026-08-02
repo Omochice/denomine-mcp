@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — 2026-07-12. Consolidates the former ADRs 0010 (single-binary only), 0008 (distribution targets), and 0012 (release automation).
+Accepted (refined by [ADR-0010](./0010-design-evolution-from-0005.md)) — 2026-07-12. Consolidates the former ADRs 0010 (single-binary only), 0008 (distribution targets), and 0012 (release automation).
 
 ## Context
 
