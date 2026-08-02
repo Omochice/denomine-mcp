@@ -52,10 +52,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # Pinned to the head of the action's `stable` branch, whose `action.yml`
-      # defaults `toolchain` to stable. The toolchain is named anyway, because a
-      # SHA no longer says which branch it came from and the next bump could
-      # silently land on one that defaults elsewhere.
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
         with:
           toolchain: stable
