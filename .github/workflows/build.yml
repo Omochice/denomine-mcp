@@ -84,6 +84,18 @@ jobs:
           mkdir -p ffi/target/release
           cp "ffi/target/${{ matrix.target }}/release/${{ matrix.cdylib }}" ffi/target/release/
 
+      # ADR-0005 made Windows distribution conditional on the Credential Manager
+      # being verified, and this leg is the only place that can do it: it is
+      # native, so the staged cdylib loads, and the Credential Manager answers
+      # without a desktop session. The macOS legs are left out because a hosted
+      # keychain smoke test would add a second thing to keep green for a store
+      # the project already ships against.
+      - name: Verify the Windows credential store
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        env:
+          DENOMINE_KEYRING_SMOKE: "1"
+        run: deno test --allow-read --allow-env --allow-ffi src/keyring/ffi.test.ts
+
       - name: Compile the single binary
         run: >
           deno compile
