@@ -1,20 +1,38 @@
 name: release
 
-# Tag-triggered so every published binary is traceable to a tagged commit
-# (ADR-0005).
+# Not tag-triggered. release-please cuts the tag with the default GITHUB_TOKEN,
+# and a tag pushed by that token starts no further workflow, so a tag-triggered
+# build would never run. Building in the same run that cut the release is what
+# keeps a published binary tied to a tagged commit.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      released: ${{ steps.release.outputs.releases_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
+
+  # Only the merge of a release pull request gets this far; every other push to
+  # main stops at the job above, which just refreshes the pending release PR.
   build:
+    needs: release-please
+    if: needs.release-please.outputs.released == 'true'
     uses: ./.github/workflows/build.yml
 
   publish:
-    needs: build
+    needs: [release-please, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,10 +48,12 @@ jobs:
         working-directory: dist
         run: sha256sum denomine-mcp-* > SHA256SUMS
 
-      - name: Publish the release
+      # Uploading to the release release-please already created, rather than
+      # creating one here: the changelog and the tag are its output, and this
+      # job only adds what it could not build.
+      - name: Attach the binaries to the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          gh release create "$GITHUB_REF_NAME" dist/*
+          gh release upload "${{ needs.release-please.outputs.tag }}" dist/*
           --repo "$GITHUB_REPOSITORY"
-          --generate-notes
