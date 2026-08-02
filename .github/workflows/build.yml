@@ -35,6 +35,14 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      # ADR-0005 counts CI cost as a decision driver, and the matrix now runs on
+      # every pull request; without this each run pays for three cold builds of
+      # the whole dependency tree.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ffi
+          key: ${{ matrix.target }}
+
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
@@ -63,6 +71,14 @@ jobs:
           --include ffi/target/release/${{ matrix.cdylib }}
           --output dist/denomine-mcp-${{ matrix.target }}
           main.ts
+
+      # Only the native leg can run its own artifact, and `--help` is as far as
+      # it goes: a bare runner has no Secret Service, so any command that
+      # touches the keyring would fail on the missing store rather than prove
+      # anything about the binary.
+      - name: Smoke-run the native artifact
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: ./dist/denomine-mcp-${{ matrix.target }} --help
 
       - uses: actions/upload-artifact@v4
         with:
