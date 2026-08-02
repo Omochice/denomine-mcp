@@ -1,0 +1,71 @@
+name: build
+
+# Called by both `ci` and `release` so the target matrix is defined once and a
+# tag can never build a set the pull requests did not already exercise.
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # The runner is chosen per target because the keyring cdylib has to be built
+    # natively; `deno compile --target` would cross-compile from any host, but
+    # cargo would not. Both Apple slices come off the arm64 runner, which its
+    # clang can link for either architecture.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-latest
+            cdylib: libkeyring_ffi.dylib
+          - target: x86_64-apple-darwin
+            runner: macos-latest
+            cdylib: libkeyring_ffi.dylib
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+            cdylib: libkeyring_ffi.so
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Build the keyring cdylib
+        run: >
+          cargo build --release --locked
+          --target ${{ matrix.target }}
+          --manifest-path ffi/Cargo.toml
+
+      # `src/keyring/ffi.ts` resolves exactly one path, `ffi/target/release/`,
+      # and a `--target` build lands under `ffi/target/<triple>/release/`
+      # instead. Staging the artifact keeps that single runtime path a contract
+      # the builder satisfies, rather than teaching the loader about triples it
+      # cannot know at runtime.
+      - name: Stage the cdylib where the loader resolves it
+        run: |
+          mkdir -p ffi/target/release
+          cp "ffi/target/${{ matrix.target }}/release/${{ matrix.cdylib }}" ffi/target/release/
+
+      - name: Compile the single binary
+        run: >
+          deno compile
+          --allow-ffi --allow-read --allow-write --allow-net --allow-env
+          --target ${{ matrix.target }}
+          --include ffi/target/release/${{ matrix.cdylib }}
+          --output dist/denomine-mcp-${{ matrix.target }}
+          main.ts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: denomine-mcp-${{ matrix.target }}
+          path: dist/denomine-mcp-${{ matrix.target }}
+          if-no-files-found: error

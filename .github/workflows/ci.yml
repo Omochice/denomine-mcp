@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - run: deno fmt --check
+      - run: deno lint
+      - run: deno check main.ts
+
+      # No cargo step: the FFI smoke test is gated behind
+      # `DENOMINE_KEYRING_SMOKE`, so the default suite runs on the fakes and
+      # needs no cdylib.
+      - run: deno task test
+
+  # The release matrix also runs here so a broken cross-build surfaces on the
+  # pull request rather than at tag time, when the tag is already pushed.
+  build:
+    uses: ./.github/workflows/build.yml
