@@ -35,3 +35,17 @@ jobs:
   # pull request rather than at tag time, when the tag is already pushed.
   build:
     uses: ./.github/workflows/build.yml
+
+  status-check:
+    timeout-minutes: 5
+    name: Status Check
+    runs-on: ubuntu-latest
+    needs:
+      # keep-sorted start
+      - build
+      - check
+      # keep-sorted end
+    permissions: {}
+    if: failure() || cancelled()
+    steps:
+      - run: exit 1
