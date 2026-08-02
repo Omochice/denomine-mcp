@@ -12,8 +12,12 @@ jobs:
   build:
     # The runner is chosen per target because the keyring cdylib has to be built
     # natively; `deno compile --target` would cross-compile from any host, but
-    # cargo would not. Both Apple slices come off the arm64 runner, which its
-    # clang can link for either architecture.
+    # cargo would not. The one exception is the Apple pair, where the arm64
+    # runner's clang links either architecture, so both slices share a runner.
+    #
+    # `ext` exists because `deno compile` appends `.exe` for a Windows target.
+    # Naming it in the matrix keeps the artifact path spelled out at each use
+    # rather than depending on that behaviour implicitly.
     strategy:
       fail-fast: false
       matrix:
@@ -21,13 +25,30 @@ jobs:
           - target: aarch64-apple-darwin
             runner: macos-latest
             cdylib: libkeyring_ffi.dylib
+            ext: ""
           - target: x86_64-apple-darwin
             runner: macos-latest
             cdylib: libkeyring_ffi.dylib
+            ext: ""
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-latest
             cdylib: libkeyring_ffi.so
+            ext: ""
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-24.04-arm
+            cdylib: libkeyring_ffi.so
+            ext: ""
+          - target: x86_64-pc-windows-msvc
+            runner: windows-latest
+            cdylib: keyring_ffi.dll
+            ext: ".exe"
     runs-on: ${{ matrix.runner }}
+    # The staging step needs `mkdir -p` and `cp`, which the Windows runner's
+    # default pwsh does not provide. Set once here so every step speaks the same
+    # shell on every runner.
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
@@ -36,7 +57,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       # ADR-0005 counts CI cost as a decision driver, and the matrix now runs on
-      # every pull request; without this each run pays for three cold builds of
+      # every pull request; without this each run pays for five cold builds of
       # the whole dependency tree.
       - uses: Swatinem/rust-cache@v2
         with:
@@ -69,19 +90,20 @@ jobs:
           --allow-ffi --allow-read --allow-write --allow-net --allow-env
           --target ${{ matrix.target }}
           --include ffi/target/release/${{ matrix.cdylib }}
-          --output dist/denomine-mcp-${{ matrix.target }}
+          --output dist/denomine-mcp-${{ matrix.target }}${{ matrix.ext }}
           main.ts
 
-      # Only the native leg can run its own artifact, and `--help` is as far as
-      # it goes: a bare runner has no Secret Service, so any command that
-      # touches the keyring would fail on the missing store rather than prove
-      # anything about the binary.
-      - name: Smoke-run the native artifact
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
-        run: ./dist/denomine-mcp-${{ matrix.target }} --help
+      # Every leg but the Apple x64 one runs on a machine of its own
+      # architecture; that one is cross-built on an arm64 runner with no Rosetta,
+      # so its artifact cannot be executed here. `--help` is as far as this goes
+      # because it proves the binary links and starts without depending on a
+      # credential store the runner may not have.
+      - name: Smoke-run the artifact
+        if: matrix.target != 'x86_64-apple-darwin'
+        run: ./dist/denomine-mcp-${{ matrix.target }}${{ matrix.ext }} --help
 
       - uses: actions/upload-artifact@v4
         with:
           name: denomine-mcp-${{ matrix.target }}
-          path: dist/denomine-mcp-${{ matrix.target }}
+          path: dist/denomine-mcp-${{ matrix.target }}${{ matrix.ext }}
           if-no-files-found: error
