@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/Omochice/denomine-mcp/compare/v0.1.0...v0.1.1) (2026-08-03)
+
+
+### Continuous Integration
+
+* draft the release before attaching binaries ([#5](https://github.com/Omochice/denomine-mcp/issues/5)) ([43c57f4](https://github.com/Omochice/denomine-mcp/commit/43c57f455e4a2659d4e32a73703fbf3b5fceeb2d))
+
 ## 0.1.0 (2026-08-03)
 
 
