@@ -20,7 +20,7 @@ import { listCommand } from "./list.ts";
 export function cli() {
   return new Command()
     .name("denomine-mcp")
-    .version("0.0.0") // x-release-please-version
+    .version("0.1.0") // x-release-please-version
     .description("MCP server for Redmine.")
     .action(function () {
       this.showHelp();
