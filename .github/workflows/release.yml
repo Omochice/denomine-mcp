@@ -23,6 +23,9 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
+        with:
+          config-file: .github/release-please-config.json
+          manifest-file: .github/release-please-manifest.json
 
   # Only the merge of a release pull request gets this far; every other push to
   # main stops at the job above, which just refreshes the pending release PR.
