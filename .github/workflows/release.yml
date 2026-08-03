@@ -1,9 +1,9 @@
 name: release
 
-# Not tag-triggered. release-please cuts the tag with the default GITHUB_TOKEN,
-# and a tag pushed by that token starts no further workflow, so a tag-triggered
-# build would never run. Building in the same run that cut the release is what
-# keeps a published binary tied to a tagged commit.
+# Not tag-triggered. The tag is created with the default GITHUB_TOKEN, and a tag
+# pushed by that token starts no further workflow, so a tag-triggered build would
+# never run. Building in the same run that cuts the release is what keeps a
+# published binary tied to a tagged commit.
 on:
   push:
     branches: [main]
@@ -52,11 +52,26 @@ jobs:
         run: sha256sum denomine-mcp-* > SHA256SUMS
 
       # Uploading to the release release-please already created, rather than
-      # creating one here: the changelog and the tag are its output, and this
-      # job only adds what it could not build.
-      - name: Attach the binaries to the release
+      # creating one here: the changelog is its output, and this job only adds
+      # what it could not build.
+      #
+      # `release_immutability` is enabled on this repository, and a published
+      # immutable release rejects every asset upload. Attaching while the release
+      # is still a draft is the way in GitHub documents, which is why
+      # release-please is configured to draft it rather than publish it.
+      - name: Attach the binaries to the draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
           gh release upload "${{ needs.release-please.outputs.tag }}" dist/*
+          --repo "$GITHUB_REPOSITORY"
+
+      # Publishing is what freezes the release, so nothing may follow it. The tag
+      # comes into existence here too: GitHub withholds it while a release is a
+      # draft, then creates it at the commit release-please recorded.
+      - name: Publish the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release edit "${{ needs.release-please.outputs.tag }}" --draft=false
           --repo "$GITHUB_REPOSITORY"
