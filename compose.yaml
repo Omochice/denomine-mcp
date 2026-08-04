@@ -23,7 +23,7 @@ services:
       retries: 10
 
   redmine:
-    image: redmine:6.0
+    image: redmine:6.1@sha256:157c712839fe9787eb5cfe8376c38de45042613c511228f01386e8aeab5cfa21
     depends_on:
       db:
         condition: service_healthy
