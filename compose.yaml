@@ -7,7 +7,7 @@
 # Redmine 6.0 requires PostgreSQL 14+; 16 is used here for headroom.
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
     environment:
       POSTGRES_USER: redmine
       POSTGRES_PASSWORD: redmine
