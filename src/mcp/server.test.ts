@@ -1,6 +1,6 @@
 import { expect } from "jsr:@std/expect@1.0.20";
-import { Client } from "npm:@modelcontextprotocol/sdk@1.29.0/client/index.js";
-import { InMemoryTransport } from "npm:@modelcontextprotocol/sdk@1.29.0/inMemory.js";
+import { Client } from "npm:@modelcontextprotocol/sdk@1.30.0/client/index.js";
+import { InMemoryTransport } from "npm:@modelcontextprotocol/sdk@1.30.0/inMemory.js";
 import { buildServer } from "./server.ts";
 import {
   FakeIssuePort,
