@@ -1,3 +1,4 @@
+import { dedent } from "@std/text/unstable-dedent";
 import type { SearchPort } from "../../redmine/port.ts";
 import type { ToolModule } from "../../mcp/tool.ts";
 import { handleSearch } from "./handler.ts";
@@ -14,9 +15,11 @@ export function searchTool(port: SearchPort): ToolModule {
   return {
     name: "redmine_search",
     description: () =>
-      "Full-text search across Redmine issues, wiki pages, news, documents, " +
-      "changesets, messages, and projects. Requires `q`; narrow with `scope` " +
-      "and the per-resource flags. Set `action` to `search`.",
+      dedent`
+        Full-text search across Redmine issues, wiki pages, news, documents,
+        changesets, messages, and projects. Requires \`q\`; narrow with \`scope\`
+        and the per-resource flags. Set \`action\` to \`search\`.
+      `,
     schema: (mode) => searchInputSchema(mode),
     handle: (input) => handleSearch(port, input as SearchToolInput),
   };
