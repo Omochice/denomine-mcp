@@ -9,11 +9,6 @@ import { issueInputSchema, type IssueToolInput } from "./schema.ts";
  * Packages the issue schema and handler as a {@link ToolModule} bound to a port.
  * The server validates arguments against the same schema before calling
  * `handle`, so the cast to {@link IssueToolInput} is sound.
- *
- * The description spells out `include` on top of the shared CRUD summary
- * because Redmine returns a bare issue by default: a model that reads only the
- * tool list would otherwise conclude that comments and history are
- * unavailable, when they merely have to be asked for.
  */
 export function issuesTool(port: IssuePort): ToolModule {
   return {
