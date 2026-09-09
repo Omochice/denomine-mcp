@@ -16,11 +16,8 @@ export function issuesTool(port: IssuePort): ToolModule {
     description: (mode) =>
       dedent`
         ${describeCrudTool("issues", mode)}
-        \`show\` returns the bare issue; pass \`include: ["journals"]\` to get
-        its comments and field-change history, and add \`attachments\`,
-        \`relations\`, \`children\`, \`changesets\`, \`watchers\`, or
-        \`allowedStatuses\` as needed. \`list\` accepts only \`attachments\`
-        and \`relations\`.
+        \`show\` returns the bare issue; pass \`include: ["journals"]\` to get its comments and field-change history, and add \`attachments\`, \`relations\`, \`children\`, \`changesets\`, \`watchers\`, or \`allowedStatuses\` as needed.
+        \`list\` accepts only \`attachments\` and \`relations\`.
       `,
     schema: (mode) => issueInputSchema(mode),
     handle: (input) => handleIssue(port, input as IssueToolInput),
