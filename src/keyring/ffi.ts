@@ -23,7 +23,7 @@ const SYMBOLS = {
  * `lib`. Naming each platform's file in full keeps that difference visible
  * rather than hiding it in a prefix that only happens to be right twice.
  */
-function dylibName(): string {
+export function dylibName(): string {
   switch (Deno.build.os) {
     case "windows":
       return "keyring_ffi.dll";
