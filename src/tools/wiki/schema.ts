@@ -1,8 +1,19 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
 
-const projectId = v.number();
-const title = v.string();
+const projectId = v.pipe(
+  v.union([v.number(), v.string()]),
+  v.description(
+    "Numeric project id, or the project identifier from a Redmine URL (the <identifier> in /projects/<identifier>/wiki/...).",
+  ),
+);
+
+const title = v.pipe(
+  v.string(),
+  v.description(
+    "Wiki page title. When taken from a URL, percent-decode it first; Redmine stores spaces as underscores, so either form of a multi-word title works.",
+  ),
+);
 
 export const listInput = v.object({
   action: v.literal("list"),

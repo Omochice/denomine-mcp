@@ -154,10 +154,11 @@ export type WikiContent = {
 };
 
 /**
- * The project every wiki operation is scoped to, kept as one alias so the port
- * and its implementations agree on the shape.
+ * A project reference as Redmine's `/projects/:project_id/...` routes accept
+ * it: the numeric id or the string identifier that appears in project URLs.
+ * Redmine rejects all-digit identifiers, so the two forms never collide.
  */
-export type ProjectRef = number;
+export type ProjectRef = number | string;
 
 /**
  * The wiki-page operations the tool layer depends on. Wiki pages are keyed by

@@ -13,6 +13,7 @@ function env(name: string): string | undefined {
 const endpoint = env("DENOMINE_TEST_ENDPOINT");
 const apiKey = env("DENOMINE_TEST_API_KEY");
 const projectId = Number(env("DENOMINE_TEST_PROJECT_ID") ?? "1");
+const projectIdentifier = env("DENOMINE_TEST_PROJECT_IDENTIFIER");
 
 /**
  * Exercises the real `@omochice/redmine`-backed wiki client end to end against a
@@ -39,6 +40,16 @@ Deno.test({
       const result = await client.show(projectId, title);
       expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
       expect((Result.unwrap(result) as { title: string }).title).toBe(title);
+    });
+
+    await t.step({
+      name: "show resolves the page through the project identifier",
+      ignore: projectIdentifier === undefined,
+      fn: async () => {
+        const result = await client.show(projectIdentifier!, title);
+        expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
+        expect((Result.unwrap(result) as { title: string }).title).toBe(title);
+      },
     });
 
     await t.step("update changes the text", async () => {

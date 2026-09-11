@@ -26,7 +26,8 @@ export class WikiClient implements WikiPort {
 
   list(projectId: ProjectRef): Promise<RedmineResult<unknown>> {
     return Result.try({
-      try: () => Array.fromAsync(this.#redmine.wiki.list(projectId)),
+      try: () =>
+        Array.fromAsync(this.#redmine.wiki.list(asLibraryId(projectId))),
       catch: toRedmineError,
     });
   }
@@ -37,7 +38,12 @@ export class WikiClient implements WikiPort {
     version?: number,
   ): Promise<RedmineResult<unknown>> {
     return Result.try({
-      try: () => this.#redmine.wiki.show({ projectId, title, version }),
+      try: () =>
+        this.#redmine.wiki.show({
+          projectId: asLibraryId(projectId),
+          title,
+          version,
+        }),
       catch: toRedmineError,
     });
   }
@@ -48,7 +54,7 @@ export class WikiClient implements WikiPort {
   ): Promise<RedmineResult<null>> {
     return Result.try({
       try: async () => {
-        await this.#redmine.wiki.create(projectId, wiki);
+        await this.#redmine.wiki.create(asLibraryId(projectId), wiki);
         return null;
       },
       catch: toRedmineError,
@@ -61,7 +67,7 @@ export class WikiClient implements WikiPort {
   ): Promise<RedmineResult<null>> {
     return Result.try({
       try: async () => {
-        await this.#redmine.wiki.update(projectId, wiki);
+        await this.#redmine.wiki.update(asLibraryId(projectId), wiki);
         return null;
       },
       catch: toRedmineError,
@@ -74,10 +80,18 @@ export class WikiClient implements WikiPort {
   ): Promise<RedmineResult<null>> {
     return Result.try({
       try: async () => {
-        await this.#redmine.wiki.delete(projectId, title);
+        await this.#redmine.wiki.delete(asLibraryId(projectId), title);
         return null;
       },
       catch: toRedmineError,
     });
   }
+}
+
+/**
+ * `@omochice/redmine` types the path parameter as `number` although Redmine
+ * accepts the identifier there too; confining the cast here keeps it deletable.
+ */
+function asLibraryId(projectId: ProjectRef): number {
+  return projectId as number;
 }
