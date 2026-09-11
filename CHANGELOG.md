@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/Omochice/denomine-mcp/compare/v0.1.1...v0.2.0) (2026-09-11)
+
+
+### Features
+
+* describe `include` and journals in the issue tool ([#27](https://github.com/Omochice/denomine-mcp/issues/27)) ([88d6427](https://github.com/Omochice/denomine-mcp/commit/88d6427e824e392054398ba7f9ebb2c91ca1a587))
+
 ## [0.1.1](https://github.com/Omochice/denomine-mcp/compare/v0.1.0...v0.1.1) (2026-08-03)
 
 
