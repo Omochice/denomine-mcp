@@ -16,7 +16,7 @@ import { dylibName } from "../src/keyring/ffi.ts";
  * three platforms CI builds for are distinguished; anything else is treated
  * as Unix, which is also what the loader assumes.
  */
-function osOfTriple(triple: string): typeof Deno.build.os {
+function tripleToOs(triple: string): typeof Deno.build.os {
   if (triple.includes("windows")) return "windows";
   if (triple.includes("apple")) return "darwin";
   return "linux";
@@ -28,7 +28,7 @@ function optionValue(args: string[], flag: string): string | undefined {
 }
 
 const target = optionValue(Deno.args, "--target");
-const os = target === undefined ? Deno.build.os : osOfTriple(target);
+const os = target === undefined ? Deno.build.os : tripleToOs(target);
 const output = optionValue(Deno.args, "--output") === undefined
   ? ["--output", "denomine-mcp"]
   : [];
