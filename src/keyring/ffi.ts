@@ -16,15 +16,15 @@ const SYMBOLS = {
 } as const satisfies Deno.ForeignLibraryInterface;
 
 /**
- * The `cdylib` file name Cargo emits for the current platform.
+ * The `cdylib` file name Cargo emits for `os`, the current platform by default.
  *
  * The extension is not the only thing that varies: the MSVC toolchain emits a
  * bare `keyring_ffi.dll`, while Unix toolchains prefix the crate name with
  * `lib`. Naming each platform's file in full keeps that difference visible
  * rather than hiding it in a prefix that only happens to be right twice.
  */
-export function dylibName(): string {
-  switch (Deno.build.os) {
+export function dylibName(os: typeof Deno.build.os = Deno.build.os): string {
+  switch (os) {
     case "windows":
       return "keyring_ffi.dll";
     case "darwin":
