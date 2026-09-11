@@ -99,12 +99,9 @@ jobs:
 
       - name: Compile the single binary
         run: >
-          deno compile
-          --allow-ffi --allow-read --allow-write --allow-net --allow-env
+          deno task compile:bin
           --target ${{ matrix.target }}
-          --include ffi/target/release/${{ matrix.cdylib }}
           --output dist/denomine-mcp-${{ matrix.target }}${{ matrix.ext }}
-          main.ts
 
       # Every leg but the Apple x64 one runs on a machine of its own
       # architecture; that one is cross-built on an arm64 runner with no Rosetta,
