@@ -1,22 +1,25 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
 
+const projectId = v.number();
+const title = v.string();
+
 export const listInput = v.object({
   action: v.literal("list"),
-  projectId: v.number(),
+  projectId,
 });
 
 export const showInput = v.object({
   action: v.literal("show"),
-  projectId: v.number(),
-  title: v.string(),
+  projectId,
+  title,
   version: v.optional(v.number()),
 });
 
 export const createInput = v.object({
   action: v.literal("create"),
-  projectId: v.number(),
-  title: v.string(),
+  projectId,
+  title,
   text: v.string(),
   comments: v.optional(v.string()),
   parentTitle: v.optional(v.string()),
@@ -24,8 +27,8 @@ export const createInput = v.object({
 
 export const updateInput = v.object({
   action: v.literal("update"),
-  projectId: v.number(),
-  title: v.string(),
+  projectId,
+  title,
   text: v.string(),
   comments: v.optional(v.string()),
   version: v.optional(v.number()),
@@ -34,8 +37,8 @@ export const updateInput = v.object({
 
 export const deleteInput = v.object({
   action: v.literal("delete"),
-  projectId: v.number(),
-  title: v.string(),
+  projectId,
+  title,
 });
 
 /** Every wiki-tool argument shape, discriminated by `action`. */

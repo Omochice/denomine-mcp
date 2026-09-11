@@ -2,6 +2,7 @@ import { Redmine } from "@omochice/redmine";
 import { Result } from "@praha/byethrow";
 import { toRedmineError } from "./error.ts";
 import type {
+  ProjectRef,
   RedmineContext,
   RedmineResult,
   WikiContent,
@@ -23,7 +24,7 @@ export class WikiClient implements WikiPort {
     this.#redmine = new Redmine(context);
   }
 
-  list(projectId: number): Promise<RedmineResult<unknown>> {
+  list(projectId: ProjectRef): Promise<RedmineResult<unknown>> {
     return Result.try({
       try: () => Array.fromAsync(this.#redmine.wiki.list(projectId)),
       catch: toRedmineError,
@@ -31,7 +32,7 @@ export class WikiClient implements WikiPort {
   }
 
   show(
-    projectId: number,
+    projectId: ProjectRef,
     title: string,
     version?: number,
   ): Promise<RedmineResult<unknown>> {
@@ -42,7 +43,7 @@ export class WikiClient implements WikiPort {
   }
 
   create(
-    projectId: number,
+    projectId: ProjectRef,
     wiki: WikiContent,
   ): Promise<RedmineResult<null>> {
     return Result.try({
@@ -55,7 +56,7 @@ export class WikiClient implements WikiPort {
   }
 
   update(
-    projectId: number,
+    projectId: ProjectRef,
     wiki: WikiContent,
   ): Promise<RedmineResult<null>> {
     return Result.try({
@@ -68,7 +69,7 @@ export class WikiClient implements WikiPort {
   }
 
   delete(
-    projectId: number,
+    projectId: ProjectRef,
     title: string,
   ): Promise<RedmineResult<null>> {
     return Result.try({

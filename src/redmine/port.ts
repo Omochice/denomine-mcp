@@ -154,20 +154,32 @@ export type WikiContent = {
 };
 
 /**
+ * The project every wiki operation is scoped to, kept as one alias so the port
+ * and its implementations agree on the shape.
+ */
+export type ProjectRef = number;
+
+/**
  * The wiki-page operations the tool layer depends on. Wiki pages are keyed by
- * project id and title (not a numeric id), and `create`/`update`/`delete` carry
+ * project and title (not a numeric id), and `create`/`update`/`delete` carry
  * no body, so they resolve to `null`.
  */
 export interface WikiPort {
-  list(projectId: number): Promise<RedmineResult<unknown>>;
+  list(projectId: ProjectRef): Promise<RedmineResult<unknown>>;
   show(
-    projectId: number,
+    projectId: ProjectRef,
     title: string,
     version?: number,
   ): Promise<RedmineResult<unknown>>;
-  create(projectId: number, wiki: WikiContent): Promise<RedmineResult<null>>;
-  update(projectId: number, wiki: WikiContent): Promise<RedmineResult<null>>;
-  delete(projectId: number, title: string): Promise<RedmineResult<null>>;
+  create(
+    projectId: ProjectRef,
+    wiki: WikiContent,
+  ): Promise<RedmineResult<null>>;
+  update(
+    projectId: ProjectRef,
+    wiki: WikiContent,
+  ): Promise<RedmineResult<null>>;
+  delete(projectId: ProjectRef, title: string): Promise<RedmineResult<null>>;
 }
 
 export type VersionStatus = "open" | "locked" | "closed";
