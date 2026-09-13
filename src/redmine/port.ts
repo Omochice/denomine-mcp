@@ -162,8 +162,8 @@ export type ProjectRef = number | string;
 
 /**
  * The wiki-page operations the tool layer depends on. Wiki pages are keyed by
- * project and title (not a numeric id), and `create`/`update`/`delete` carry
- * no body, so they resolve to `null`.
+ * project and title, and `create`/`update`/`delete` carry no body, so they
+ * resolve to `null`.
  */
 export interface WikiPort {
   list(projectId: ProjectRef): Promise<RedmineResult<unknown>>;
