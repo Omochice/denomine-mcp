@@ -1,10 +1,8 @@
-# Verification harness: a throwaway Redmine 6.0 instance the MCP server can be
+# Verification harness: a throwaway Redmine instance the MCP server can be
 # pointed at during development. Not a production or deployment artifact.
 #
 #   docker compose up -d
 #   open http://localhost:3000   (first login: admin / admin, forced to change)
-#
-# Redmine 6.0 requires PostgreSQL 14+; 16 is used here for headroom.
 services:
   db:
     image: postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
