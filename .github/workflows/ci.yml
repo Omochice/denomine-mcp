@@ -43,8 +43,6 @@ jobs:
 
       - run: docker compose up -d
 
-      # The image runs its migrations on first boot, so the port is published
-      # long before the application answers a request.
       - name: Wait for Redmine to answer
         run: |
           for _ in $(seq 1 120); do
@@ -60,17 +58,13 @@ jobs:
           docker compose logs
           exit 1
 
-      # `docker compose exec` runs outside the entrypoint that exports
-      # SECRET_KEY_BASE, so the command sets it explicitly; otherwise
-      # `rails runner` aborts with a missing-secret error.
+      # `docker compose exec` runs outside the entrypoint that exports SECRET_KEY_BASE.
       - name: Enable the REST API and capture the admin API key
         run: |
           key=$(docker compose exec -T redmine sh -c \
             'SECRET_KEY_BASE="$REDMINE_SECRET_KEY_BASE" bundle exec rails runner \
              "Setting.rest_api_enabled = %q(1); puts User.find_by_login(%q(admin)).api_key"' \
             | tail -n 1)
-          # Without a key every integration test ignores itself, and the job
-          # would pass having tested nothing.
           if [ -z "$key" ]; then
             echo "rails runner produced no API key" >&2
             docker compose logs redmine
@@ -79,8 +73,6 @@ jobs:
           echo "::add-mask::$key"
           echo "DENOMINE_TEST_API_KEY=$key" >> "$GITHUB_ENV"
 
-      # A project created before the default data exists is given no trackers,
-      # after which every issue create answers 422.
       - name: Seed the default data and the project under test
         run: |
           docker compose exec -T redmine sh -c \
