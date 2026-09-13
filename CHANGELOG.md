@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/Omochice/denomine-mcp/compare/v0.2.0...v0.3.0) (2026-09-13)
+
+
+### Features
+
+* accept a project identifier from wiki URLs in the wiki tool ([#36](https://github.com/Omochice/denomine-mcp/issues/36)) ([8b2af9f](https://github.com/Omochice/denomine-mcp/commit/8b2af9f973f67f216ab83ffa00c4a2205d62f3b2))
+* track spent time and look up the enumeration ids it needs ([#39](https://github.com/Omochice/denomine-mcp/issues/39)) ([3ec7ceb](https://github.com/Omochice/denomine-mcp/commit/3ec7cebecad52ddd3b42c44de0b5e33a80a7f157))
+
 ## [0.2.0](https://github.com/Omochice/denomine-mcp/compare/v0.1.1...v0.2.0) (2026-09-11)
 
 
