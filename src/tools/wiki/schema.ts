@@ -1,8 +1,10 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
 
+const identifier = v.pipe(v.string(), v.regex(/\S/, "must not be blank"));
+
 const projectId = v.pipe(
-  v.union([v.number(), v.string()]),
+  v.union([v.number(), identifier]),
   v.description(
     "Numeric project id, or the project identifier from a Redmine URL (the <identifier> in /projects/<identifier>/wiki/...).",
   ),
@@ -10,6 +12,7 @@ const projectId = v.pipe(
 
 const title = v.pipe(
   v.string(),
+  v.regex(/\S/, "must not be blank"),
   v.description(
     "Wiki page title. When taken from a URL, percent-decode it first; Redmine stores spaces as underscores, so either form of a multi-word title works.",
   ),
