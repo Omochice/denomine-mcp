@@ -3,9 +3,11 @@ import { Client } from "npm:@modelcontextprotocol/sdk@1.30.0/client/index.js";
 import { InMemoryTransport } from "npm:@modelcontextprotocol/sdk@1.30.0/inMemory.js";
 import { buildServer } from "./server.ts";
 import {
+  FakeEnumerationPort,
   FakeIssuePort,
   FakeRelationPort,
   FakeSearchPort,
+  FakeTimeEntryPort,
   FakeVersionPort,
   FakeWikiPort,
 } from "../redmine/fake.ts";
@@ -14,6 +16,8 @@ import { wikiTool } from "../tools/wiki/mod.ts";
 import { versionTool } from "../tools/version/mod.ts";
 import { relationTool } from "../tools/relation/mod.ts";
 import { searchTool } from "../tools/search/mod.ts";
+import { timeEntryTool } from "../tools/time_entry/mod.ts";
+import { enumerationTool } from "../tools/enumeration/mod.ts";
 import type { ToolModule } from "./tool.ts";
 import type { Mode } from "../tools/mode.ts";
 
@@ -136,13 +140,14 @@ Deno.test("MCP server advertises and dispatches the read-only search tool", asyn
   }
 });
 
-Deno.test("readonly mode advertises only read actions for every tool", async () => {
+Deno.test("readonly mode advertises only read actions for every CRUD tool", async () => {
   const client = await connectTools(
     [
       issuesTool(new FakeIssuePort()),
       wikiTool(new FakeWikiPort()),
       versionTool(new FakeVersionPort()),
       relationTool(new FakeRelationPort()),
+      timeEntryTool(new FakeTimeEntryPort()),
     ],
     "readonly",
   );
@@ -170,6 +175,7 @@ Deno.test("readonly mode advertises only read actions for every tool", async () 
         "redmine_wiki_pages",
         "redmine_versions",
         "redmine_issue_relations",
+        "redmine_time_entries",
       ]
     ) {
       const write = await client.callTool({
@@ -183,6 +189,46 @@ Deno.test("readonly mode advertises only read actions for every tool", async () 
   }
 });
 
+Deno.test("readonly mode leaves the enumeration tool intact", async () => {
+  const client = await connectTools(
+    [enumerationTool(new FakeEnumerationPort())],
+    "readonly",
+  );
+  try {
+    const { tools } = await client.listTools();
+    const enumerations = (tools as {
+      name: string;
+      description: string;
+      inputSchema: { properties: { action: { enum: string[] } } };
+    }[]).find((tool) => tool.name === "redmine_enumerations");
+    expect(enumerations, "enumeration tool should be advertised").toBeDefined();
+    expect(enumerations!.inputSchema.properties.action.enum).toStrictEqual([
+      "listTimeEntryActivities",
+      "listIssuePriorities",
+      "listDocumentCategories",
+    ]);
+    expect(
+      !/create|update|delete/i.test(enumerations!.description),
+      `enumeration description should not mention writes: ${
+        enumerations!.description
+      }`,
+    ).toBe(true);
+
+    const listed = await client.callTool({
+      name: "redmine_enumerations",
+      arguments: { action: "listTimeEntryActivities" },
+    }) as CallResult;
+    expect(listed.isError).not.toBe(true);
+    const activities = JSON.parse(textOf(listed)) as { name: string }[];
+    expect(activities.map((activity) => activity.name)).toStrictEqual([
+      "Design",
+      "Development",
+    ]);
+  } finally {
+    await client.close();
+  }
+});
+
 Deno.test("server advertises every registered tool and dispatches their CRUD", async () => {
   const client = await connectTools(
     [
@@ -190,6 +236,8 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
       wikiTool(new FakeWikiPort()),
       versionTool(new FakeVersionPort()),
       relationTool(new FakeRelationPort()),
+      timeEntryTool(new FakeTimeEntryPort()),
+      enumerationTool(new FakeEnumerationPort()),
     ],
     "full",
   );
@@ -197,12 +245,17 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
     const { tools } = await client.listTools();
     expect(tools.map((tool: { name: string }) => tool.name).sort())
       .toStrictEqual([
+        "redmine_enumerations",
         "redmine_issue_relations",
         "redmine_issues",
+        "redmine_time_entries",
         "redmine_versions",
         "redmine_wiki_pages",
       ]);
-    for (const tool of tools as { description: string }[]) {
+    const writable = (tools as { name: string; description: string }[]).filter(
+      (tool) => tool.name !== "redmine_enumerations",
+    );
+    for (const tool of writable) {
       expect(
         /create.*delete/i.test(tool.description),
         `full-mode description should mention writes: ${tool.description}`,
@@ -244,6 +297,33 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
       arguments: { action: "delete", id: 1 },
     }) as CallResult;
     expect(versionDeleted.isError).not.toBe(true);
+
+    const entryCreated = await client.callTool({
+      name: "redmine_time_entries",
+      arguments: { action: "create", projectId: 1, hours: 3 },
+    }) as CallResult;
+    expect(entryCreated.isError).not.toBe(true);
+
+    const entryShown = await client.callTool({
+      name: "redmine_time_entries",
+      arguments: { action: "show", id: 1 },
+    }) as CallResult;
+    const { timeEntry } = JSON.parse(textOf(entryShown)) as {
+      timeEntry: { hours: number };
+    };
+    expect(timeEntry.hours).toBe(3);
+
+    const entryDeleted = await client.callTool({
+      name: "redmine_time_entries",
+      arguments: { action: "delete", id: 1 },
+    }) as CallResult;
+    expect(entryDeleted.isError).not.toBe(true);
+
+    const priorities = await client.callTool({
+      name: "redmine_enumerations",
+      arguments: { action: "listIssuePriorities" },
+    }) as CallResult;
+    expect(priorities.isError).not.toBe(true);
   } finally {
     await client.close();
   }
