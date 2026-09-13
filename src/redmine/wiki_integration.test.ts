@@ -13,7 +13,8 @@ function env(name: string): string | undefined {
 const endpoint = env("DENOMINE_TEST_ENDPOINT");
 const apiKey = env("DENOMINE_TEST_API_KEY");
 const projectId = Number(env("DENOMINE_TEST_PROJECT_ID") ?? "1");
-const projectIdentifier = env("DENOMINE_TEST_PROJECT_IDENTIFIER");
+const projectIdentifier = env("DENOMINE_TEST_PROJECT_IDENTIFIER")?.trim() ||
+  undefined;
 
 /**
  * Exercises the real `@omochice/redmine`-backed wiki client end to end against a
