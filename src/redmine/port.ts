@@ -279,3 +279,40 @@ export interface RelationPort {
   create(issueId: number, attrs: RelationCreate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;
 }
+
+/** A filter on the time entry list; every date is an ISO date (`YYYY-MM-DD`). */
+export type TimeEntryListQuery = {
+  projectId?: number;
+  userId?: number;
+  spentOn?: IsoDate;
+  from?: IsoDate;
+  to?: IsoDate;
+};
+
+/** Attributes of a logged time entry; `spentOn` is an ISO date (`YYYY-MM-DD`). */
+export type TimeEntryCreate = {
+  hours: number;
+  issueId?: number;
+  projectId?: number;
+  spentOn?: IsoDate;
+  activityId?: number;
+  comments?: string;
+};
+
+export type TimeEntryUpdate = Partial<TimeEntryCreate>;
+
+/** The time entry operations the tool layer depends on. */
+export interface TimeEntryPort {
+  list(query: TimeEntryListQuery): Promise<RedmineResult<unknown>>;
+  show(id: number): Promise<RedmineResult<unknown>>;
+  create(attrs: TimeEntryCreate): Promise<RedmineResult<null>>;
+  update(id: number, attrs: TimeEntryUpdate): Promise<RedmineResult<null>>;
+  delete(id: number): Promise<RedmineResult<null>>;
+}
+
+/** The enumeration listings the tool layer depends on; read-only in Redmine's API. */
+export interface EnumerationPort {
+  listTimeEntryActivities(): Promise<RedmineResult<unknown>>;
+  listIssuePriorities(): Promise<RedmineResult<unknown>>;
+  listDocumentCategories(): Promise<RedmineResult<unknown>>;
+}

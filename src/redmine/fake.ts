@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
 import type {
+  EnumerationPort,
   IssueCreate,
   IssueInclude,
   IssueListQuery,
@@ -11,6 +12,10 @@ import type {
   RelationPort,
   SearchPort,
   SearchQuery,
+  TimeEntryCreate,
+  TimeEntryListQuery,
+  TimeEntryPort,
+  TimeEntryUpdate,
   VersionCreate,
   VersionPort,
   VersionUpdate,
@@ -336,5 +341,113 @@ export class FakeRelationPort implements RelationPort {
 
   #notFound(): { status: number; errors: string[] } {
     return { status: 404, errors: [] };
+  }
+}
+
+type StoredTimeEntry = { id: number; userId: number } & TimeEntryCreate;
+
+/**
+ * In-memory {@link TimeEntryPort} for deterministic unit tests. Redmine takes the
+ * owning user from the API key, so the fake is constructed with one instead.
+ */
+export class FakeTimeEntryPort implements TimeEntryPort {
+  readonly #entries = new Map<number, StoredTimeEntry>();
+  readonly #userId: number;
+  #nextId = 1;
+
+  constructor(userId = 1) {
+    this.#userId = userId;
+  }
+
+  list(query: TimeEntryListQuery): Promise<RedmineResult<unknown>> {
+    const timeEntries = [...this.#entries.values()].filter((entry) => {
+      if (
+        query.projectId !== undefined && entry.projectId !== query.projectId
+      ) {
+        return false;
+      }
+      return query.userId === undefined || entry.userId === query.userId;
+    });
+    return Promise.resolve(Result.succeed({ timeEntries }));
+  }
+
+  show(id: number): Promise<RedmineResult<unknown>> {
+    const entry = this.#entries.get(id);
+    if (entry === undefined) {
+      return Promise.resolve(Result.fail(this.#notFound()));
+    }
+    return Promise.resolve(Result.succeed({ timeEntry: entry }));
+  }
+
+  create(attrs: TimeEntryCreate): Promise<RedmineResult<null>> {
+    const invalid = this.#invalidHours(attrs.hours);
+    if (invalid !== undefined) {
+      return Promise.resolve(Result.fail(invalid));
+    }
+    const id = this.#nextId++;
+    this.#entries.set(id, { id, userId: this.#userId, ...attrs });
+    return Promise.resolve(Result.succeed(null));
+  }
+
+  update(id: number, attrs: TimeEntryUpdate): Promise<RedmineResult<null>> {
+    const entry = this.#entries.get(id);
+    if (entry === undefined) {
+      return Promise.resolve(Result.fail(this.#notFound()));
+    }
+    const invalid = attrs.hours === undefined
+      ? undefined
+      : this.#invalidHours(attrs.hours);
+    if (invalid !== undefined) {
+      return Promise.resolve(Result.fail(invalid));
+    }
+    this.#entries.set(id, { ...entry, ...attrs });
+    return Promise.resolve(Result.succeed(null));
+  }
+
+  delete(id: number): Promise<RedmineResult<null>> {
+    if (!this.#entries.delete(id)) {
+      return Promise.resolve(Result.fail(this.#notFound()));
+    }
+    return Promise.resolve(Result.succeed(null));
+  }
+
+  #invalidHours(
+    hours: number | undefined,
+  ): { status: number; errors: string[] } | undefined {
+    if (typeof hours === "number" && hours > 0) {
+      return undefined;
+    }
+    return { status: 422, errors: ["Hours must be greater than zero"] };
+  }
+
+  #notFound(): { status: number; errors: string[] } {
+    return { status: 404, errors: [] };
+  }
+}
+
+/** In-memory {@link EnumerationPort} for deterministic unit tests. */
+export class FakeEnumerationPort implements EnumerationPort {
+  listTimeEntryActivities(): Promise<RedmineResult<unknown>> {
+    return this.#succeed([
+      { id: 8, name: "Design", isDefault: false, active: true },
+      { id: 9, name: "Development", isDefault: true, active: true },
+    ]);
+  }
+
+  listIssuePriorities(): Promise<RedmineResult<unknown>> {
+    return this.#succeed([
+      { id: 3, name: "Low", isDefault: false, active: true },
+      { id: 4, name: "Normal", isDefault: true, active: true },
+    ]);
+  }
+
+  listDocumentCategories(): Promise<RedmineResult<unknown>> {
+    return this.#succeed([
+      { id: 1, name: "User documentation", isDefault: true, active: true },
+    ]);
+  }
+
+  #succeed(enumerations: unknown[]): Promise<RedmineResult<unknown>> {
+    return Promise.resolve(Result.succeed(enumerations));
   }
 }
