@@ -2,8 +2,8 @@ import { expect } from "jsr:@std/expect@1.0.20";
 import * as v from "@valibot/valibot";
 import { wikiInputSchema } from "./schema.ts";
 
-Deno.test("show rejects a blank project reference", () => {
-  for (const projectId of ["", "   "]) {
+Deno.test("show rejects a project identifier holding whitespace", () => {
+  for (const projectId of ["", "   ", " demo ", "de mo"]) {
     expect(
       v.safeParse(wikiInputSchema("readonly"), {
         action: "show",
@@ -29,7 +29,7 @@ Deno.test("show rejects a blank title", () => {
 });
 
 Deno.test("show accepts either form of the project reference", () => {
-  for (const projectId of [1, "demo"]) {
+  for (const projectId of [1, "demo", "1"]) {
     expect(
       v.safeParse(wikiInputSchema("readonly"), {
         action: "show",

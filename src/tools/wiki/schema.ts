@@ -1,7 +1,10 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
 
-const identifier = v.pipe(v.string(), v.regex(/\S/, "must not be blank"));
+const identifier = v.pipe(
+  v.string(),
+  v.regex(/^\S+$/, "must not contain whitespace"),
+);
 
 const projectId = v.pipe(
   v.union([v.number(), identifier]),
