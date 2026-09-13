@@ -110,7 +110,7 @@ export class FakeWikiPort implements WikiPort {
 
   list(projectId: ProjectRef): Promise<RedmineResult<unknown>> {
     const pages = [...this.#pages.values()].filter(
-      (page) => page.projectId === projectId,
+      (page) => `${page.projectId}` === `${projectId}`,
     );
     return Promise.resolve(Result.succeed({ wiki_pages: pages }));
   }
