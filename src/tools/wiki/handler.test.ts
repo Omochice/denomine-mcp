@@ -86,3 +86,23 @@ Deno.test("wiki handler surfaces a validation failure as isError", async () => {
   });
   expect(response.isError).toBe(true);
 });
+
+Deno.test("wiki handler accepts the project identifier from a wiki URL", async () => {
+  const port = new FakeWikiPort();
+  const created = await handleWiki(port, {
+    action: "create",
+    projectId: "my-project",
+    title: "Home",
+    text: "body",
+  });
+  expect(created.isError).not.toBe(true);
+  const response = await handleWiki(port, {
+    action: "show",
+    projectId: "my-project",
+    title: "Home",
+  });
+  const { wiki_page } = JSON.parse(textOf(response)) as {
+    wiki_page: { text: string };
+  };
+  expect(wiki_page.text).toBe("body");
+});

@@ -1,10 +1,12 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { WikiClient } from "./wiki_client.ts";
+import type { ProjectRef } from "./port.ts";
 
+/** Reads a variable, treating a blank one as absent the way a shell means it. */
 function env(name: string): string | undefined {
   try {
-    return Deno.env.get(name);
+    return Deno.env.get(name)?.trim() || undefined;
   } catch {
     return undefined;
   }
@@ -13,6 +15,7 @@ function env(name: string): string | undefined {
 const endpoint = env("DENOMINE_TEST_ENDPOINT");
 const apiKey = env("DENOMINE_TEST_API_KEY");
 const projectId = Number(env("DENOMINE_TEST_PROJECT_ID") ?? "1");
+const projectIdentifier = env("DENOMINE_TEST_PROJECT_IDENTIFIER");
 
 /**
  * Exercises the real `@omochice/redmine`-backed wiki client end to end against a
@@ -35,10 +38,18 @@ Deno.test({
       expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
     });
 
-    await t.step("show returns the page", async () => {
-      const result = await client.show(projectId, title);
+    const expectShown = async (project: ProjectRef) => {
+      const result = await client.show(project, title);
       expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
       expect((Result.unwrap(result) as { title: string }).title).toBe(title);
+    };
+
+    await t.step("show returns the page", () => expectShown(projectId));
+
+    await t.step({
+      name: "show resolves the page through the project identifier",
+      ignore: projectIdentifier === undefined,
+      fn: () => expectShown(projectIdentifier!),
     });
 
     await t.step("update changes the text", async () => {

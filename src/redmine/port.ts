@@ -154,20 +154,33 @@ export type WikiContent = {
 };
 
 /**
+ * A project reference as Redmine's `/projects/:project_id/...` routes accept
+ * it: the numeric id or the string identifier that appears in project URLs.
+ * Redmine rejects all-digit identifiers, so the two forms never collide.
+ */
+export type ProjectRef = number | string;
+
+/**
  * The wiki-page operations the tool layer depends on. Wiki pages are keyed by
- * project id and title (not a numeric id), and `create`/`update`/`delete` carry
- * no body, so they resolve to `null`.
+ * project and title, and `create`/`update`/`delete` carry no body, so they
+ * resolve to `null`.
  */
 export interface WikiPort {
-  list(projectId: number): Promise<RedmineResult<unknown>>;
+  list(projectId: ProjectRef): Promise<RedmineResult<unknown>>;
   show(
-    projectId: number,
+    projectId: ProjectRef,
     title: string,
     version?: number,
   ): Promise<RedmineResult<unknown>>;
-  create(projectId: number, wiki: WikiContent): Promise<RedmineResult<null>>;
-  update(projectId: number, wiki: WikiContent): Promise<RedmineResult<null>>;
-  delete(projectId: number, title: string): Promise<RedmineResult<null>>;
+  create(
+    projectId: ProjectRef,
+    wiki: WikiContent,
+  ): Promise<RedmineResult<null>>;
+  update(
+    projectId: ProjectRef,
+    wiki: WikiContent,
+  ): Promise<RedmineResult<null>>;
+  delete(projectId: ProjectRef, title: string): Promise<RedmineResult<null>>;
 }
 
 export type VersionStatus = "open" | "locked" | "closed";

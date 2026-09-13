@@ -5,6 +5,7 @@ import type {
   IssueListQuery,
   IssuePort,
   IssueUpdate,
+  ProjectRef,
   RedmineResult,
   RelationCreate,
   RelationPort,
@@ -96,7 +97,7 @@ export class FakeIssuePort implements IssuePort {
   }
 }
 
-type StoredWiki = { projectId: number; version: number } & WikiContent;
+type StoredWiki = { projectId: ProjectRef; version: number } & WikiContent;
 
 /**
  * In-memory {@link WikiPort} for deterministic unit tests. Pages are keyed by
@@ -107,15 +108,15 @@ type StoredWiki = { projectId: number; version: number } & WikiContent;
 export class FakeWikiPort implements WikiPort {
   readonly #pages = new Map<string, StoredWiki>();
 
-  list(projectId: number): Promise<RedmineResult<unknown>> {
+  list(projectId: ProjectRef): Promise<RedmineResult<unknown>> {
     const pages = [...this.#pages.values()].filter(
-      (page) => page.projectId === projectId,
+      (page) => `${page.projectId}` === `${projectId}`,
     );
     return Promise.resolve(Result.succeed({ wiki_pages: pages }));
   }
 
   show(
-    projectId: number,
+    projectId: ProjectRef,
     title: string,
     _version?: number,
   ): Promise<RedmineResult<unknown>> {
@@ -127,7 +128,7 @@ export class FakeWikiPort implements WikiPort {
   }
 
   create(
-    projectId: number,
+    projectId: ProjectRef,
     wiki: WikiContent,
   ): Promise<RedmineResult<null>> {
     if (wiki.title.trim() === "") {
@@ -144,7 +145,7 @@ export class FakeWikiPort implements WikiPort {
   }
 
   update(
-    projectId: number,
+    projectId: ProjectRef,
     wiki: WikiContent,
   ): Promise<RedmineResult<null>> {
     const key = this.#key(projectId, wiki.title);
@@ -156,14 +157,14 @@ export class FakeWikiPort implements WikiPort {
     return Promise.resolve(Result.succeed(null));
   }
 
-  delete(projectId: number, title: string): Promise<RedmineResult<null>> {
+  delete(projectId: ProjectRef, title: string): Promise<RedmineResult<null>> {
     if (!this.#pages.delete(this.#key(projectId, title))) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     return Promise.resolve(Result.succeed(null));
   }
 
-  #key(projectId: number, title: string): string {
+  #key(projectId: ProjectRef, title: string): string {
     return `${projectId} ${title}`;
   }
 

@@ -1,6 +1,6 @@
 # Verification harness
 
-`compose.yaml` brings up a throwaway Redmine 6.0 instance so `denomine-mcp` can be exercised against a real Redmine REST API.
+`compose.yaml` brings up a throwaway Redmine instance so `denomine-mcp` can be exercised against a real Redmine REST API.
 It is a verification aid, not a deployment artifact.
 
 ## Start
