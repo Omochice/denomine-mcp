@@ -4,7 +4,19 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "extra-files": ["src/cli/mod.ts"],
+      "extra-files": [
+        "src/version.ts",
+        {
+          "type": "toml",
+          "path": "ffi/Cargo.toml",
+          "jsonpath": "$.package.version"
+        },
+        {
+          "type": "toml",
+          "path": "ffi/Cargo.lock",
+          "jsonpath": "$.package[?(@.name.value=='keyring_ffi')].version"
+        }
+      ],
       "initial-version": "0.1.0",
       "draft": true
     }

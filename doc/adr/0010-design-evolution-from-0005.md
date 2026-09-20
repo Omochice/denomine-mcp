@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — 2026-08-03. Refines [ADR-0005](./0005-single-binary-distribution-and-release.md).
+Accepted (refined by [ADR-0011](./0011-design-evolution-from-0010.md)) — 2026-08-03. Refines [ADR-0005](./0005-single-binary-distribution-and-release.md).
 
 ## Context
 

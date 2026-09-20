@@ -8,6 +8,7 @@ import * as v from "@valibot/valibot";
 import type { Mode } from "../tools/mode.ts";
 import type { ToolResponse } from "../tools/response.ts";
 import { toObjectSchema, type ToolModule } from "./tool.ts";
+import { VERSION } from "../version.ts";
 
 /**
  * Builds the MCP server exposing the given resource tools over stdio.
@@ -17,7 +18,7 @@ import { toObjectSchema, type ToolModule } from "./tool.ts";
  */
 export function buildServer(tools: ToolModule[], mode: Mode): Server {
   const server = new Server(
-    { name: "denomine-mcp", version: "0.0.0" },
+    { name: "denomine-mcp", version: VERSION },
     { capabilities: { tools: {} } },
   );
   const byName = new Map(tools.map((tool) => [tool.name, tool]));
