@@ -3,7 +3,9 @@ deno = "2.9.7"
 rust = "1.98.1"
 
 [tasks]
+dev = "deno task dev"
 build = "deno task compile"
 test = "deno task test"
+"test:integration" = "deno task test:integration"
 fmt = "deno fmt"
 check = ["deno fmt --check", "deno lint", "deno check"]
