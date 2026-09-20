@@ -6,22 +6,22 @@ This document describes how to build, test, and change `denomine-mcp`.
 
 The server is written in TypeScript for [Deno](https://deno.com/) 2, and the OS credential store is reached through a small Rust `cdylib` under `ffi/`.
 
-Building therefore needs Deno 2 and a stable Rust toolchain.
+Building therefore needs Deno and a Rust toolchain, at the versions pinned in `mise.toml` for [mise](https://mise.jdx.dev/).
 
 Docker is needed only for the integration tests.
 
 ## Tasks
 
-All routine commands are `deno task` entries defined in `deno.json`, summarized in the table below.
+All routine commands are `mise run` tasks defined in `mise.toml`, summarized in the table below.
 
-| Task               | Purpose                                                                      |
-| ------------------ | ---------------------------------------------------------------------------- |
-| `dev`              | Run the CLI from source, for example `deno task dev serve --endpoint <url>`. |
-| `test`             | Run the unit tests.                                                          |
-| `test:integration` | Run the unit tests and the integration tests against a live Redmine.         |
-| `build:ffi`        | Build the keyring `cdylib` into `ffi/target/release/`.                       |
-| `compile:bin`      | Compile the single binary, embedding the already built `cdylib`.             |
-| `compile`          | Run `build:ffi` and then `compile:bin`.                                      |
+| Task               | Purpose                                                                        |
+| ------------------ | ------------------------------------------------------------------------------ |
+| `dev`              | Run the CLI from source, for example `mise run dev -- serve --endpoint <url>`. |
+| `test`             | Run the unit tests.                                                            |
+| `test:integration` | Run the unit tests and the integration tests against a live Redmine.           |
+| `fmt`              | Format the sources.                                                            |
+| `check`            | Run the format check, the linter, and the type check.                          |
+| `build`            | Build the keyring `cdylib` and compile the single binary.                      |
 
 ## Tests
 
@@ -30,7 +30,7 @@ The test that exercises the real credential store is opt-in, because it writes t
 It runs only on macOS and Windows, and only when `DENOMINE_KEYRING_SMOKE` is set to `1`.
 
 ```sh
-deno task build:ffi
+mise run build
 DENOMINE_KEYRING_SMOKE=1 deno test --allow-read --allow-env --allow-ffi src/keyring/ffi.test.ts
 ```
 
@@ -45,7 +45,7 @@ DENOMINE_TEST_ENDPOINT=http://localhost:3000 \
 DENOMINE_TEST_API_KEY=<key> \
 DENOMINE_TEST_PROJECT_IDENTIFIER=demo \
 DENOMINE_TEST_SEARCH_QUERY=Demo \
-deno task test:integration
+mise run test:integration
 ```
 
 See [doc/verification.md](./doc/verification.md) for the setup.

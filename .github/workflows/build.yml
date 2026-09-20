@@ -52,10 +52,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
-        with:
-          toolchain: stable
-          targets: ${{ matrix.target }}
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+
+      - run: rustup target add ${{ matrix.target }}
 
       # ADR-0005 counts CI cost as a decision driver, and the matrix now runs on
       # every pull request; without this each run pays for five cold builds of
@@ -64,10 +63,6 @@ jobs:
         with:
           workspaces: ffi
           key: ${{ matrix.target }}
-
-      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
-        with:
-          deno-version: v2.x
 
       - name: Build the keyring cdylib
         run: >

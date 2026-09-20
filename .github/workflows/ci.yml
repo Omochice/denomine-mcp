@@ -15,21 +15,22 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # `mise run` would otherwise install the Rust this job never uses.
+    env:
+      MISE_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
-          deno-version: v2.x
+          install_args: deno
 
-      - run: deno fmt --check
-      - run: deno lint
-      - run: deno check main.ts
+      - run: mise run check
 
       # No cargo step: the FFI smoke test is gated behind
       # `DENOMINE_KEYRING_SMOKE`, so the default suite runs on the fakes and
       # needs no cdylib.
-      - run: deno task test
+      - run: mise run test
 
   integration:
     runs-on: ubuntu-latest
@@ -37,9 +38,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
-          deno-version: v2.x
+          install_args: deno
 
       - run: docker compose up -d
 
