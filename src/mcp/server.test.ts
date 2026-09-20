@@ -20,6 +20,7 @@ import { timeEntryTool } from "../tools/time_entry/mod.ts";
 import { enumerationTool } from "../tools/enumeration/mod.ts";
 import type { ToolModule } from "./tool.ts";
 import type { Mode } from "../tools/mode.ts";
+import { VERSION } from "../version.ts";
 
 async function connectTools(tools: ToolModule[], mode: Mode): Promise<Client> {
   const server = buildServer(tools, mode);
@@ -54,6 +55,15 @@ type CallResult = { content: { text: string }[]; isError?: boolean };
 function textOf(result: CallResult): string {
   return result.content[0].text;
 }
+
+Deno.test("MCP server reports the released version to the client", async () => {
+  const client = await connect("full");
+  try {
+    expect(client.getServerVersion()?.version).toBe(VERSION);
+  } finally {
+    await client.close();
+  }
+});
 
 Deno.test("MCP server drives issue CRUD over an in-memory transport", async () => {
   const client = await connect("full");
