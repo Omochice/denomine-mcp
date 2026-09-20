@@ -4,7 +4,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "extra-files": ["src/cli/mod.ts"],
+      "extra-files": ["src/version.ts"],
       "initial-version": "0.1.0",
       "draft": true
     }
