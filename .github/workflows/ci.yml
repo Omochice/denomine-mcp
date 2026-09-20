@@ -15,6 +15,9 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # `mise run` would otherwise install the Rust this job never uses.
+    env:
+      MISE_AUTO_INSTALL: "false"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -22,14 +25,12 @@ jobs:
         with:
           install_args: deno
 
-      - run: deno fmt --check
-      - run: deno lint
-      - run: deno check main.ts
+      - run: mise run check
 
       # No cargo step: the FFI smoke test is gated behind
       # `DENOMINE_KEYRING_SMOKE`, so the default suite runs on the fakes and
       # needs no cdylib.
-      - run: deno task test
+      - run: mise run test
 
   integration:
     runs-on: ubuntu-latest
