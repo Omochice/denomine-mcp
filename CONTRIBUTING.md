@@ -6,7 +6,7 @@ This document describes how to build, test, and change `denomine-mcp`.
 
 The server is written in TypeScript for [Deno](https://deno.com/) 2, and the OS credential store is reached through a small Rust `cdylib` under `ffi/`.
 
-Building therefore needs Deno 2 and a stable Rust toolchain.
+Building therefore needs Deno and a Rust toolchain, at the versions pinned in `mise.toml` for [mise](https://mise.jdx.dev/).
 
 Docker is needed only for the integration tests.
 
