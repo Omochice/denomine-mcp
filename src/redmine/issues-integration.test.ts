@@ -146,3 +146,69 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "RedmineClient moves an issue between versions against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const context = { endpoint: endpoint!, apiKey: apiKey! };
+    const client = new RedmineClient(context);
+    const versions = new VersionClient(context);
+    const name = `denomine-mcp ${Date.now()}`;
+    const from = await createVersion(versions, `${name} from`);
+    const to = await createVersion(versions, `${name} to`);
+    let id: number | undefined;
+
+    const shownVersion = async () => {
+      const shown = await client.show(id!);
+      expect(Result.isSuccess(shown), JSON.stringify(shown)).toBe(true);
+      return (Result.unwrap(shown) as { fixedVersion?: { id: number } })
+        .fixedVersion?.id;
+    };
+
+    try {
+      const created = await client.create({
+        projectId,
+        trackerId: 1,
+        statusId: 1,
+        priorityId: 2,
+        subject: name,
+        fixedVersionId: from,
+      });
+      expect(Result.isSuccess(created), JSON.stringify(created)).toBe(true);
+      const inVersion = Result.unwrap(
+        await client.list({ projectId, fixedVersionId: from }),
+      ) as { id: number }[];
+      id = inVersion[0].id;
+
+      await t.step(
+        "show reports the version the issue was created in",
+        async () => {
+          expect(await shownVersion()).toBe(from);
+        },
+      );
+
+      await t.step("update moves the issue to another version", async () => {
+        const updated = await client.update(id!, { fixedVersionId: to });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownVersion()).toBe(to);
+      });
+
+      await t.step(
+        "update with null takes the issue out of its version",
+        async () => {
+          const updated = await client.update(id!, { fixedVersionId: null });
+          expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+          expect(await shownVersion()).toBeUndefined();
+        },
+      );
+    } finally {
+      if (id !== undefined) {
+        await client.delete(id);
+      }
+      await versions.delete(from);
+      await versions.delete(to);
+    }
+  },
+});
