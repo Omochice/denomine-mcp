@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { RedmineClient } from "./client.ts";
-import { VersionClient } from "./version_client.ts";
+import { VersionClient } from "./version-client.ts";
 
 /** Reads an env var, treating a denied `--allow-env` as simply absent so the
  * suite can run under `--allow-read` alone and this test is skipped. */
