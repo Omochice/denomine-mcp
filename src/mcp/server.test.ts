@@ -3,6 +3,7 @@ import { Client } from "npm:@modelcontextprotocol/sdk@1.30.0/client/index.js";
 import { InMemoryTransport } from "npm:@modelcontextprotocol/sdk@1.30.0/inMemory.js";
 import { buildServer } from "./server.ts";
 import {
+  FakeAttachmentPort,
   FakeEnumerationPort,
   FakeIssuePort,
   FakeRelationPort,
@@ -11,6 +12,9 @@ import {
   FakeVersionPort,
   FakeWikiPort,
 } from "../redmine/fake.ts";
+import { FakeFilePort } from "../file/fake.ts";
+import { attachmentTool } from "../tools/attachment/mod.ts";
+import { defaultMaxSize } from "../tools/attachment/schema.ts";
 import { issuesTool } from "../tools/issues/mod.ts";
 import { wikiTool } from "../tools/wiki/mod.ts";
 import { versionTool } from "../tools/version/mod.ts";
@@ -334,6 +338,64 @@ Deno.test("server advertises every registered tool and dispatches their CRUD", a
       arguments: { action: "listIssuePriorities" },
     }) as CallResult;
     expect(priorities.isError).not.toBe(true);
+  } finally {
+    await client.close();
+  }
+});
+
+Deno.test("readonly mode leaves both attachment actions available", async () => {
+  const files = new FakeFilePort();
+  const client = await connectTools(
+    [
+      attachmentTool(
+        new FakeAttachmentPort({
+          7: {
+            metadata: {
+              id: 7,
+              filename: "spec.txt",
+              contentType: "text/plain",
+            },
+            content: "hello",
+          },
+        }),
+        files,
+      ),
+    ],
+    "readonly",
+  );
+  try {
+    const { tools } = await client.listTools();
+    const attachments = (tools as {
+      name: string;
+      description: string;
+      inputSchema: { properties: { action: { enum: string[] } } };
+    }[]).find((tool) => tool.name === "redmine_attachments");
+    expect(attachments, "attachment tool should be advertised").toBeDefined();
+    expect(attachments!.inputSchema.properties.action.enum).toStrictEqual([
+      "show",
+      "download",
+    ]);
+    expect(
+      !/create|update|delete/i.test(attachments!.description),
+      `readonly description should not mention writes: ${
+        attachments!.description
+      }`,
+    ).toBe(true);
+
+    const downloaded = await client.callTool({
+      name: "redmine_attachments",
+      arguments: { action: "download", id: 7, path: "spec.txt" },
+    }) as CallResult;
+    expect(downloaded.isError).not.toBe(true);
+    expect(JSON.parse(textOf(downloaded))).toStrictEqual({
+      path: "/absolute/spec.txt",
+      filename: "spec.txt",
+      contentType: "text/plain",
+      filesize: 5,
+    });
+    expect(files.saved).toStrictEqual([
+      { path: "spec.txt", content: "hello", maxSize: defaultMaxSize },
+    ]);
   } finally {
     await client.close();
   }

@@ -1,5 +1,7 @@
 import { Result } from "@praha/byethrow";
 import type {
+  AttachmentContent,
+  AttachmentPort,
   EnumerationPort,
   IssueCreate,
   IssueInclude,
@@ -449,5 +451,67 @@ export class FakeEnumerationPort implements EnumerationPort {
 
   #succeed(enumerations: unknown[]): Promise<RedmineResult<unknown>> {
     return Promise.resolve(Result.succeed(enumerations));
+  }
+}
+
+/**
+ * An attachment the fake serves: its metadata and the content behind it. A
+ * `filesize` in the metadata is reported as declared even when it disagrees
+ * with the content, so a server that misreports a size can be exercised.
+ */
+export type FakeAttachment = {
+  metadata: Record<string, unknown>;
+  content: string;
+};
+
+/**
+ * In-memory {@link AttachmentPort} for deterministic unit tests. It is seeded
+ * with the attachments it serves, because nothing in the tool surface creates
+ * one: an attachment reaches Redmine through an upload the API exposes
+ * elsewhere.
+ */
+export class FakeAttachmentPort implements AttachmentPort {
+  readonly cancelled: number[] = [];
+  readonly #attachments: Map<number, FakeAttachment>;
+
+  constructor(seed: Record<number, FakeAttachment> = {}) {
+    this.#attachments = new Map(
+      Object.entries(seed).map(([id, attachment]) => [Number(id), attachment]),
+    );
+  }
+
+  show(id: number): Promise<RedmineResult<unknown>> {
+    const attachment = this.#attachments.get(id);
+    if (attachment === undefined) {
+      return Promise.resolve(Result.fail(this.#notFound()));
+    }
+    return Promise.resolve(Result.succeed({ attachment: attachment.metadata }));
+  }
+
+  download(id: number): Promise<RedmineResult<AttachmentContent>> {
+    const attachment = this.#attachments.get(id);
+    if (attachment === undefined) {
+      return Promise.resolve(Result.fail(this.#notFound()));
+    }
+    const bytes = new TextEncoder().encode(attachment.content);
+    const declared = attachment.metadata.filesize;
+    return Promise.resolve(Result.succeed({
+      filename: String(attachment.metadata.filename),
+      contentType: String(attachment.metadata.contentType),
+      filesize: typeof declared === "number" ? declared : bytes.byteLength,
+      body: new ReadableStream({
+        start: (controller) => {
+          controller.enqueue(bytes);
+          controller.close();
+        },
+        cancel: () => {
+          this.cancelled.push(id);
+        },
+      }),
+    }));
+  }
+
+  #notFound(): { status: number; errors: string[] } {
+    return { status: 404, errors: [] };
   }
 }

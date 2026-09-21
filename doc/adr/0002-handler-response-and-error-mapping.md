@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (refined by [ADR-0008](./0008-design-evolution-from-0002.md)) — 2026-07-12. Consolidates the former ADRs 0007 (Result-based API), 0015 (error disclosure), and 0016 (raw JSON and paging).
+Accepted (refined by [ADR-0008](./0008-design-evolution-from-0002.md); decision 2 does not apply to attachment content, see [ADR-0012](./0012-attachment-content-delivered-as-a-local-file.md)) — 2026-07-12. Consolidates the former ADRs 0007 (Result-based API), 0015 (error disclosure), and 0016 (raw JSON and paging).
 
 ## Context
 
