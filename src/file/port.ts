@@ -12,7 +12,7 @@ export type FileResult<T> = Result.Result<T, Error>;
  * port; the real backend binds it to Deno, and a fake backs the unit tests,
  * which run without write permission (see ADR-0007).
  */
-export interface FilePort {
+export type FilePort = {
   /**
    * Writes a stream to `path` without ever replacing an existing file, failing
    * once more than `maxSize` bytes have arrived. The bytes are counted as they
@@ -25,4 +25,4 @@ export interface FilePort {
     body: ReadableStream<Uint8Array>,
     maxSize: number,
   ): Promise<FileResult<string>>;
-}
+};

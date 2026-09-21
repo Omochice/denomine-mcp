@@ -327,10 +327,10 @@ export type AttachmentContent = {
  * returns the metadata, `download` the content, and neither changes anything in
  * Redmine.
  */
-export interface AttachmentPort {
+export type AttachmentPort = {
   show(id: number): Promise<RedmineResult<unknown>>;
   download(id: number): Promise<RedmineResult<AttachmentContent>>;
-}
+};
 
 /** The enumeration listings the tool layer depends on; read-only in Redmine's API. */
 export interface EnumerationPort {
