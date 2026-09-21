@@ -6,7 +6,7 @@
  * The service name (the application id) is fixed by the backend, so callers key
  * only by the endpoint account.
  */
-export interface Keyring {
+export type Keyring = {
   /** Returns the stored secret for the account, or `undefined` if none. */
   get(account: string): Promise<string | undefined>;
   /** Stores (or replaces) the secret for the account. */
@@ -15,4 +15,4 @@ export interface Keyring {
   delete(account: string): Promise<void>;
   /** Returns the accounts (endpoint URLs) that currently have a stored secret. */
   list(): Promise<string[]>;
-}
+};

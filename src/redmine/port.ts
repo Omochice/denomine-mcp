@@ -133,7 +133,7 @@ export type IssueUpdate = {
  * port; the real backend binds it to `@omochice/redmine`, and a fake backs the
  * unit tests (see ADR-0007).
  */
-export interface IssuePort {
+export type IssuePort = {
   list(query: IssueListQuery): Promise<RedmineResult<unknown>>;
   show(
     id: number,
@@ -142,7 +142,7 @@ export interface IssuePort {
   create(attrs: IssueCreate): Promise<RedmineResult<null>>;
   update(id: number, attrs: IssueUpdate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;
-}
+};
 
 /** Attributes of a wiki page; a page is identified by its project and title. */
 export type WikiContent = {
@@ -165,7 +165,7 @@ export type ProjectRef = number | string;
  * project and title, and `create`/`update`/`delete` carry no body, so they
  * resolve to `null`.
  */
-export interface WikiPort {
+export type WikiPort = {
   list(projectId: ProjectRef): Promise<RedmineResult<unknown>>;
   show(
     projectId: ProjectRef,
@@ -181,7 +181,7 @@ export interface WikiPort {
     wiki: WikiContent,
   ): Promise<RedmineResult<null>>;
   delete(projectId: ProjectRef, title: string): Promise<RedmineResult<null>>;
-}
+};
 
 export type VersionStatus = "open" | "locked" | "closed";
 
@@ -209,13 +209,13 @@ export type VersionUpdate = Partial<VersionCreate>;
  * created under a project, but shown, updated, and deleted by its own numeric
  * id; `create`/`update`/`delete` carry no body, so they resolve to `null`.
  */
-export interface VersionPort {
+export type VersionPort = {
   list(projectId: number): Promise<RedmineResult<unknown>>;
   show(id: number): Promise<RedmineResult<unknown>>;
   create(projectId: number, attrs: VersionCreate): Promise<RedmineResult<null>>;
   update(id: number, attrs: VersionUpdate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;
-}
+};
 
 /**
  * A Redmine search query. Only `q` is required; `scope` narrows where to look
@@ -245,9 +245,9 @@ export type SearchQuery = {
  * read-only query across every indexed resource, so unlike the CRUD ports it
  * exposes just one method (see ADR-0001).
  */
-export interface SearchPort {
+export type SearchPort = {
   search(query: SearchQuery): Promise<RedmineResult<unknown>>;
-}
+};
 
 export type RelationType =
   | "relates"
@@ -273,12 +273,12 @@ export type RelationCreate = {
  * Redmine has no relation update. `create`/`delete` carry no body, so they
  * resolve to `null`.
  */
-export interface RelationPort {
+export type RelationPort = {
   list(issueId: number): Promise<RedmineResult<unknown>>;
   show(id: number): Promise<RedmineResult<unknown>>;
   create(issueId: number, attrs: RelationCreate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;
-}
+};
 
 /** A filter on the time entry list; every date is an ISO date (`YYYY-MM-DD`). */
 export type TimeEntryListQuery = {
@@ -302,13 +302,13 @@ export type TimeEntryCreate = {
 export type TimeEntryUpdate = Partial<TimeEntryCreate>;
 
 /** The time entry operations the tool layer depends on. */
-export interface TimeEntryPort {
+export type TimeEntryPort = {
   list(query: TimeEntryListQuery): Promise<RedmineResult<unknown>>;
   show(id: number): Promise<RedmineResult<unknown>>;
   create(attrs: TimeEntryCreate): Promise<RedmineResult<null>>;
   update(id: number, attrs: TimeEntryUpdate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;
-}
+};
 
 /**
  * The bytes of an attachment together with the metadata describing them. The
@@ -333,8 +333,8 @@ export type AttachmentPort = {
 };
 
 /** The enumeration listings the tool layer depends on; read-only in Redmine's API. */
-export interface EnumerationPort {
+export type EnumerationPort = {
   listTimeEntryActivities(): Promise<RedmineResult<unknown>>;
   listIssuePriorities(): Promise<RedmineResult<unknown>>;
   listDocumentCategories(): Promise<RedmineResult<unknown>>;
-}
+};
