@@ -182,22 +182,23 @@ type Branch = {
   properties?: { action?: { const?: unknown } };
 };
 
-function listProperties(): Record<string, { anyOf?: Branch[] }> {
-  const json = toObjectSchema(issueInputSchema("readonly"));
-  const list = (json.oneOf as Branch[])
-    .find((branch) => branch.properties?.action?.const === "list");
-  expect(list, "the list action should be advertised").toBeDefined();
-  return (list as unknown as {
-    properties: Record<string, { anyOf?: Branch[] }>;
-  }).properties;
+type Property = { description?: string; anyOf?: Branch[] };
+
+function propertiesOf(action: string): Record<string, Property> {
+  const json = toObjectSchema(issueInputSchema("full"));
+  const branch = (json.oneOf as Branch[])
+    .find((branch) => branch.properties?.action?.const === action);
+  expect(branch, `the ${action} action should be advertised`).toBeDefined();
+  return (branch as unknown as { properties: Record<string, Property> })
+    .properties;
 }
 
 Deno.test("the date filters survive the JSON Schema the server advertises", () => {
-  expect(listProperties().createdOn).toBeDefined();
+  expect(propertiesOf("list").createdOn).toBeDefined();
 });
 
 Deno.test("every date filter form advertises what it means", () => {
-  const properties = listProperties();
+  const properties = propertiesOf("list");
   let described = 0;
   for (
     const field of [
@@ -226,18 +227,8 @@ Deno.test("every date filter form advertises what it means", () => {
   expect(described).toBe(5 * pastForms + 2 * futureForms);
 });
 
-function updateProperties(): Record<string, { description?: string }> {
-  const json = toObjectSchema(issueInputSchema("full"));
-  const update = (json.oneOf as Branch[])
-    .find((branch) => branch.properties?.action?.const === "update");
-  expect(update, "the update action should be advertised").toBeDefined();
-  return (update as unknown as {
-    properties: Record<string, { description?: string }>;
-  }).properties;
-}
-
 Deno.test("statusId advertises that a forbidden transition is ignored and where the allowed ones are listed", () => {
-  const description = updateProperties().statusId.description ?? "";
+  const description = propertiesOf("update").statusId.description ?? "";
   expect(description).toContain("ignore");
   expect(description).toContain("allowedStatuses");
 });
