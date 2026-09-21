@@ -1,17 +1,6 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
-
-const identifier = v.pipe(
-  v.string(),
-  v.regex(/^\S+$/, "must not contain whitespace"),
-);
-
-const projectId = v.pipe(
-  v.union([v.number(), identifier]),
-  v.description(
-    "Numeric project id, or the project identifier from a Redmine URL (the <identifier> in /projects/<identifier>/wiki/...).",
-  ),
-);
+import { projectRef as projectId } from "../project_ref.ts";
 
 const title = v.pipe(
   v.string(),
