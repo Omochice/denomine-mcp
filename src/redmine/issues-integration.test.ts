@@ -112,6 +112,12 @@ Deno.test({
     }[];
     const fixedVersionId = listed.find((version) => version.name === name)!.id;
 
+    const issuesInVersion = async () =>
+      Result.unwrap(await client.list({ projectId, fixedVersionId })) as {
+        id: number;
+        subject: string;
+      }[];
+
     try {
       const result = await client.create({
         projectId,
@@ -123,12 +129,12 @@ Deno.test({
       });
       expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
 
-      const inVersion = Result.unwrap(
-        await client.list({ projectId, fixedVersionId }),
-      ) as { id: number; subject: string }[];
-      expect(inVersion.map((issue) => issue.subject)).toStrictEqual([name]);
-      await client.delete(inVersion[0].id);
+      expect((await issuesInVersion()).map((issue) => issue.subject))
+        .toStrictEqual([name]);
     } finally {
+      for (const issue of await issuesInVersion()) {
+        await client.delete(issue.id);
+      }
       await versions.delete(fixedVersionId);
     }
   },
