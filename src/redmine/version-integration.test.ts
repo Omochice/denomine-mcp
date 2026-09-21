@@ -13,6 +13,7 @@ function env(name: string): string | undefined {
 const endpoint = env("DENOMINE_TEST_ENDPOINT");
 const apiKey = env("DENOMINE_TEST_API_KEY");
 const projectId = Number(env("DENOMINE_TEST_PROJECT_ID") ?? "1");
+const projectIdentifier = env("DENOMINE_TEST_PROJECT_IDENTIFIER");
 
 /**
  * Exercises the real `@omochice/redmine`-backed version client end to end
@@ -43,6 +44,17 @@ Deno.test({
       const found = versions.find((version) => version.name === name);
       expect(found, "created version not found in list").toBeDefined();
       id = found!.id;
+    });
+
+    await t.step({
+      name: "list resolves the project through its identifier",
+      ignore: projectIdentifier === undefined,
+      fn: async () => {
+        const result = await client.list(projectIdentifier!);
+        expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
+        const versions = Result.unwrap(result) as { id: number }[];
+        expect(versions.map((version) => version.id)).toContain(id);
+      },
     });
 
     await t.step("show returns the version", async () => {

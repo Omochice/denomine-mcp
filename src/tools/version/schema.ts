@@ -1,5 +1,6 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
+import { projectRef } from "../project_ref.ts";
 
 const status = v.picklist(["open", "locked", "closed"]);
 const sharing = v.picklist([
@@ -12,7 +13,7 @@ const sharing = v.picklist([
 
 export const listInput = v.object({
   action: v.literal("list"),
-  projectId: v.number(),
+  projectId: projectRef,
 });
 
 export const showInput = v.object({
@@ -22,7 +23,7 @@ export const showInput = v.object({
 
 export const createInput = v.object({
   action: v.literal("create"),
-  projectId: v.number(),
+  projectId: projectRef,
   name: v.string(),
   description: v.optional(v.string()),
   status: v.optional(status),

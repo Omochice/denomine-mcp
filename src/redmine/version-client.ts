@@ -2,6 +2,7 @@ import { Redmine } from "@omochice/redmine";
 import { Result } from "@praha/byethrow";
 import { toRedmineError } from "./error.ts";
 import type {
+  ProjectRef,
   RedmineContext,
   RedmineResult,
   VersionCreate,
@@ -36,7 +37,7 @@ export class VersionClient implements VersionPort {
     this.#redmine = new Redmine(context);
   }
 
-  list(projectId: number): Promise<RedmineResult<unknown>> {
+  list(projectId: ProjectRef): Promise<RedmineResult<unknown>> {
     return Result.try({
       try: () => Array.fromAsync(this.#redmine.version.list(projectId)),
       catch: toRedmineError,
@@ -51,7 +52,7 @@ export class VersionClient implements VersionPort {
   }
 
   create(
-    projectId: number,
+    projectId: ProjectRef,
     attrs: VersionCreate,
   ): Promise<RedmineResult<null>> {
     return Result.try({

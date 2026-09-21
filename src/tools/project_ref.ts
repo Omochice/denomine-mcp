@@ -12,6 +12,6 @@ const identifier = v.pipe(
 export const projectRef = v.pipe(
   v.union([v.number(), identifier]),
   v.description(
-    "Numeric project id, or the project identifier from a Redmine URL (the <identifier> in /projects/<identifier>/wiki/...).",
+    "Numeric project id, or the project identifier from a Redmine URL (the <identifier> in /projects/<identifier>/...).",
   ),
 );

@@ -30,6 +30,26 @@ Deno.test("version handler runs a full CRUD cycle against the port", async (t) =
     expect(versions.map((version) => version.name)).toStrictEqual(["v1.0"]);
   });
 
+  await t.step(
+    "list finds a version created under a project identifier",
+    async () => {
+      const other = new FakeVersionPort();
+      await handleVersion(other, {
+        action: "create",
+        projectId: "demo",
+        name: "v2.0",
+      });
+      const response = await handleVersion(other, {
+        action: "list",
+        projectId: "demo",
+      });
+      const { versions } = JSON.parse(textOf(response)) as {
+        versions: { name: string }[];
+      };
+      expect(versions.map((version) => version.name)).toStrictEqual(["v2.0"]);
+    },
+  );
+
   await t.step("show returns the version by id", async () => {
     const response = await handleVersion(port, { action: "show", id: 1 });
     const { version } = JSON.parse(textOf(response)) as {
