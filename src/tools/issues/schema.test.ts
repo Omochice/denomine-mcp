@@ -36,6 +36,11 @@ Deno.test("update keeps statusId so an issue can be closed", () => {
   expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
 });
 
+Deno.test("update keeps priorityId so an issue can be reprioritised", () => {
+  const input = { action: "update", id: 1, priorityId: 3 };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
 Deno.test("create rejects a null fixedVersionId, since a new issue has no version to leave", () => {
   expect(
     v.safeParse(issueInputSchema("full"), {
