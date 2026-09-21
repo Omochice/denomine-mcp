@@ -31,6 +31,11 @@ Deno.test("update keeps fixedVersionId, where null takes the issue out of its ve
   }
 });
 
+Deno.test("update keeps statusId so an issue can be closed", () => {
+  const input = { action: "update", id: 1, statusId: 5 };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
 Deno.test("create rejects a null fixedVersionId, since a new issue has no version to leave", () => {
   expect(
     v.safeParse(issueInputSchema("full"), {
