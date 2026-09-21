@@ -11,6 +11,40 @@ Deno.test("list keeps fixedVersionId so a version filter is not silently dropped
   expect(parsed).toStrictEqual({ action: "list", fixedVersionId: 42 });
 });
 
+Deno.test("create keeps fixedVersionId so the issue lands in the requested version", () => {
+  const input = {
+    action: "create",
+    projectId: 1,
+    trackerId: 1,
+    statusId: 1,
+    priorityId: 2,
+    subject: "planned",
+    fixedVersionId: 42,
+  };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
+Deno.test("update keeps fixedVersionId, where null takes the issue out of its version", () => {
+  for (const fixedVersionId of [42, null]) {
+    const input = { action: "update", id: 1, fixedVersionId };
+    expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+  }
+});
+
+Deno.test("create rejects a null fixedVersionId, since a new issue has no version to leave", () => {
+  expect(
+    v.safeParse(issueInputSchema("full"), {
+      action: "create",
+      projectId: 1,
+      trackerId: 1,
+      statusId: 1,
+      priorityId: 2,
+      subject: "planned",
+      fixedVersionId: null,
+    }).success,
+  ).toBe(false);
+});
+
 Deno.test("show keeps the associations it was asked to include", () => {
   const parsed = v.parse(issueInputSchema("readonly"), {
     action: "show",

@@ -129,6 +129,7 @@ export const createInput = v.object({
   priorityId: v.number(),
   subject: v.string(),
   description: v.optional(v.string()),
+  fixedVersionId: v.optional(v.number()),
   assignedToId: v.optional(v.number()),
   parentIssueId: v.optional(v.number()),
   isPrivate: v.optional(v.boolean()),
@@ -140,6 +141,12 @@ export const updateInput = v.object({
   id: v.number(),
   subject: v.optional(v.string()),
   description: v.optional(v.string()),
+  fixedVersionId: v.optional(
+    describe(
+      v.nullable(v.number()),
+      "Version to move the issue into; `null` takes it out of its version.",
+    ),
+  ),
   doneRatio: v.optional(v.number()),
   isPrivate: v.optional(v.boolean()),
   estimatedHours: v.optional(v.number()),

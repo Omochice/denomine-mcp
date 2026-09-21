@@ -180,7 +180,7 @@ export class FakeWikiPort implements WikiPort {
   }
 }
 
-type StoredVersion = { id: number; projectId: number } & VersionCreate;
+type StoredVersion = { id: number; projectId: ProjectRef } & VersionCreate;
 
 /**
  * In-memory {@link VersionPort} for deterministic unit tests. Versions are
@@ -190,7 +190,7 @@ export class FakeVersionPort implements VersionPort {
   readonly #versions = new Map<number, StoredVersion>();
   #nextId = 1;
 
-  list(projectId: number): Promise<RedmineResult<unknown>> {
+  list(projectId: ProjectRef): Promise<RedmineResult<unknown>> {
     const versions = [...this.#versions.values()].filter(
       (version) => version.projectId === projectId,
     );
@@ -206,7 +206,7 @@ export class FakeVersionPort implements VersionPort {
   }
 
   create(
-    projectId: number,
+    projectId: ProjectRef,
     attrs: VersionCreate,
   ): Promise<RedmineResult<null>> {
     if (attrs.name.trim() === "") {

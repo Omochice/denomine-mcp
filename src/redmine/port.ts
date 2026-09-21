@@ -112,6 +112,7 @@ export type IssueCreate = {
   priorityId: number;
   subject: string;
   description?: string;
+  fixedVersionId?: number;
   assignedToId?: number;
   parentIssueId?: number;
   isPrivate?: boolean;
@@ -121,6 +122,7 @@ export type IssueCreate = {
 export type IssueUpdate = {
   subject?: string;
   description?: string;
+  fixedVersionId?: number | null;
   doneRatio?: number;
   isPrivate?: boolean;
   estimatedHours?: number;
@@ -210,9 +212,12 @@ export type VersionUpdate = Partial<VersionCreate>;
  * id; `create`/`update`/`delete` carry no body, so they resolve to `null`.
  */
 export type VersionPort = {
-  list(projectId: number): Promise<RedmineResult<unknown>>;
+  list(projectId: ProjectRef): Promise<RedmineResult<unknown>>;
   show(id: number): Promise<RedmineResult<unknown>>;
-  create(projectId: number, attrs: VersionCreate): Promise<RedmineResult<null>>;
+  create(
+    projectId: ProjectRef,
+    attrs: VersionCreate,
+  ): Promise<RedmineResult<null>>;
   update(id: number, attrs: VersionUpdate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;
 };
