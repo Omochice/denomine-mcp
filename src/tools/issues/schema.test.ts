@@ -46,6 +46,13 @@ Deno.test("update keeps trackerId so an issue can be reclassified", () => {
   expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
 });
 
+Deno.test("update keeps assignedToId, where null unassigns the issue", () => {
+  for (const assignedToId of [7, null]) {
+    const input = { action: "update", id: 1, assignedToId };
+    expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+  }
+});
+
 Deno.test("create rejects a null fixedVersionId, since a new issue has no version to leave", () => {
   expect(
     v.safeParse(issueInputSchema("full"), {
