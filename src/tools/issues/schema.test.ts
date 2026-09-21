@@ -194,3 +194,19 @@ Deno.test("every date filter form advertises what it means", () => {
   const futureForms = 4;
   expect(described).toBe(5 * pastForms + 2 * futureForms);
 });
+
+function updateProperties(): Record<string, { description?: string }> {
+  const json = toObjectSchema(issueInputSchema("full"));
+  const update = (json.oneOf as Branch[])
+    .find((branch) => branch.properties?.action?.const === "update");
+  expect(update, "the update action should be advertised").toBeDefined();
+  return (update as unknown as {
+    properties: Record<string, { description?: string }>;
+  }).properties;
+}
+
+Deno.test("statusId advertises that a forbidden transition is ignored and where the allowed ones are listed", () => {
+  const description = updateProperties().statusId.description ?? "";
+  expect(description).toContain("ignore");
+  expect(description).toContain("allowedStatuses");
+});
