@@ -6,6 +6,8 @@ import { RelationClient } from "../redmine/relation_client.ts";
 import { SearchClient } from "../redmine/search_client.ts";
 import { TimeEntryClient } from "../redmine/time_entry_client.ts";
 import { EnumerationClient } from "../redmine/enumeration_client.ts";
+import { AttachmentClient } from "../redmine/attachment_client.ts";
+import { LocalFile } from "../file/local.ts";
 import type { RedmineContext } from "../redmine/port.ts";
 import { buildServer } from "../mcp/server.ts";
 import { issuesTool } from "../tools/issues/mod.ts";
@@ -15,6 +17,7 @@ import { relationTool } from "../tools/relation/mod.ts";
 import { searchTool } from "../tools/search/mod.ts";
 import { timeEntryTool } from "../tools/time_entry/mod.ts";
 import { enumerationTool } from "../tools/enumeration/mod.ts";
+import { attachmentTool } from "../tools/attachment/mod.ts";
 import type { Mode } from "../tools/mode.ts";
 import type { Keyring } from "../keyring/port.ts";
 import { canonicalizeEndpoint } from "./endpoint.ts";
@@ -90,6 +93,7 @@ export async function runServe(
       searchTool(new SearchClient(context)),
       timeEntryTool(new TimeEntryClient(context)),
       enumerationTool(new EnumerationClient(context)),
+      attachmentTool(new AttachmentClient(context), new LocalFile()),
     ],
     mode,
   );

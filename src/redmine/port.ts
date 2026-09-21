@@ -310,6 +310,28 @@ export interface TimeEntryPort {
   delete(id: number): Promise<RedmineResult<null>>;
 }
 
+/**
+ * The bytes of an attachment together with the metadata describing them. The
+ * content is a stream so an attachment of any size can be consumed without
+ * being held in memory.
+ */
+export type AttachmentContent = {
+  filename: string;
+  contentType: string;
+  filesize: number;
+  body: ReadableStream<Uint8Array>;
+};
+
+/**
+ * The attachment operations the tool layer depends on. Both read: `show`
+ * returns the metadata, `download` the content, and neither changes anything in
+ * Redmine.
+ */
+export interface AttachmentPort {
+  show(id: number): Promise<RedmineResult<unknown>>;
+  download(id: number): Promise<RedmineResult<AttachmentContent>>;
+}
+
 /** The enumeration listings the tool layer depends on; read-only in Redmine's API. */
 export interface EnumerationPort {
   listTimeEntryActivities(): Promise<RedmineResult<unknown>>;
