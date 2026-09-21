@@ -1,6 +1,6 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
-import { VersionClient } from "./version_client.ts";
+import { VersionClient } from "./version-client.ts";
 
 function env(name: string): string | undefined {
   try {

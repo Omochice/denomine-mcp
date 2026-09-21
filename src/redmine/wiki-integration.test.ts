@@ -1,6 +1,6 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
-import { WikiClient } from "./wiki_client.ts";
+import { WikiClient } from "./wiki-client.ts";
 import type { ProjectRef } from "./port.ts";
 
 /** Reads a variable, treating a blank one as absent the way a shell means it. */

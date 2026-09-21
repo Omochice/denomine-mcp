@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { toListOption } from "@omochice/redmine/issues/validator";
 import * as v from "@valibot/valibot";
-import { toListQuery } from "./list_query.ts";
+import { toListQuery } from "./list-query.ts";
 
 Deno.test("an ISO date becomes the UTC day, not the local one", () => {
   expect(toListQuery({ createdOn: "2026-07-01" })).toStrictEqual({
