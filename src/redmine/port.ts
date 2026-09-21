@@ -127,6 +127,7 @@ export type IssueUpdate = {
   trackerId?: number;
   assignedToId?: number | null;
   categoryId?: number | null;
+  parentIssueId?: number | null;
   fixedVersionId?: number | null;
   doneRatio?: number;
   isPrivate?: boolean;

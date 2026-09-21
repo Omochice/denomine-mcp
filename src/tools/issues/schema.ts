@@ -161,6 +161,12 @@ export const updateInput = v.object({
       "Issue category to file the issue under; `null` removes the category.",
     ),
   ),
+  parentIssueId: v.optional(
+    describe(
+      v.nullable(v.number()),
+      "Issue to make the parent of this one; `null` detaches it from its parent.",
+    ),
+  ),
   fixedVersionId: v.optional(
     describe(
       v.nullable(v.number()),
