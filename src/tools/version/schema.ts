@@ -1,6 +1,6 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
-import { projectRef } from "../project_ref.ts";
+import { projectRef } from "../project-ref.ts";
 
 const status = v.picklist(["open", "locked", "closed"]);
 const sharing = v.picklist([

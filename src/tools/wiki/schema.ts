@@ -1,6 +1,6 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
-import { projectRef as projectId } from "../project_ref.ts";
+import { projectRef as projectId } from "../project-ref.ts";
 
 const title = v.pipe(
   v.string(),
