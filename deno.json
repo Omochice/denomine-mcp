@@ -1,5 +1,8 @@
 {
   "exclude": [".momomo", "doc"],
+  "minimumDependencyAge": {
+    "exclude": ["jsr:@omochice/redmine"]
+  },
   "fmt": {
     "exclude": ["CHANGELOG.md"],
     "proseWrap": "preserve"
