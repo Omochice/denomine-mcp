@@ -149,6 +149,12 @@ export const updateInput = v.object({
   ),
   priorityId: v.optional(v.number()),
   trackerId: v.optional(v.number()),
+  assignedToId: v.optional(
+    describe(
+      v.nullable(v.number()),
+      "User to assign the issue to; `null` unassigns it.",
+    ),
+  ),
   fixedVersionId: v.optional(
     describe(
       v.nullable(v.number()),
