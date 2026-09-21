@@ -60,6 +60,13 @@ Deno.test("update keeps categoryId, where null removes the category", () => {
   }
 });
 
+Deno.test("update keeps parentIssueId, where null detaches the issue from its parent", () => {
+  for (const parentIssueId of [7, null]) {
+    const input = { action: "update", id: 1, parentIssueId };
+    expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+  }
+});
+
 Deno.test("create rejects a null fixedVersionId, since a new issue has no version to leave", () => {
   expect(
     v.safeParse(issueInputSchema("full"), {
