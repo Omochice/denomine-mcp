@@ -123,6 +123,7 @@ export type IssueUpdate = {
   subject?: string;
   description?: string;
   statusId?: number;
+  priorityId?: number;
   fixedVersionId?: number | null;
   doneRatio?: number;
   isPrivate?: boolean;
