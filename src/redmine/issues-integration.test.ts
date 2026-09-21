@@ -17,6 +17,19 @@ const endpoint = env("DENOMINE_TEST_ENDPOINT");
 const apiKey = env("DENOMINE_TEST_API_KEY");
 const projectId = Number(env("DENOMINE_TEST_PROJECT_ID") ?? "1");
 
+async function createVersion(
+  versions: VersionClient,
+  name: string,
+): Promise<number> {
+  const created = await versions.create(projectId, { name });
+  expect(Result.isSuccess(created), JSON.stringify(created)).toBe(true);
+  const listed = Result.unwrap(await versions.list(projectId)) as {
+    id: number;
+    name: string;
+  }[];
+  return listed.find((version) => version.name === name)!.id;
+}
+
 /**
  * Exercises the real `@omochice/redmine`-backed client end to end against a live
  * Redmine (see doc/verification.md). Skipped unless the endpoint and API key are
@@ -104,13 +117,7 @@ Deno.test({
     const versions = new VersionClient(context);
     const name = `denomine-mcp ${Date.now()}`;
 
-    const created = await versions.create(projectId, { name });
-    expect(Result.isSuccess(created), JSON.stringify(created)).toBe(true);
-    const listed = Result.unwrap(await versions.list(projectId)) as {
-      id: number;
-      name: string;
-    }[];
-    const fixedVersionId = listed.find((version) => version.name === name)!.id;
+    const fixedVersionId = await createVersion(versions, name);
 
     const issuesInVersion = async () =>
       Result.unwrap(await client.list({ projectId, fixedVersionId })) as {
