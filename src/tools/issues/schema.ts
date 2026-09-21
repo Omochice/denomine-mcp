@@ -141,6 +141,7 @@ export const updateInput = v.object({
   id: v.number(),
   subject: v.optional(v.string()),
   description: v.optional(v.string()),
+  statusId: v.optional(v.number()),
   fixedVersionId: v.optional(
     describe(
       v.nullable(v.number()),
