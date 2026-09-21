@@ -155,6 +155,12 @@ export const updateInput = v.object({
       "User to assign the issue to; `null` unassigns it.",
     ),
   ),
+  categoryId: v.optional(
+    describe(
+      v.nullable(v.number()),
+      "Issue category to file the issue under; `null` removes the category.",
+    ),
+  ),
   fixedVersionId: v.optional(
     describe(
       v.nullable(v.number()),
