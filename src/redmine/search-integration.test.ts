@@ -1,6 +1,6 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
-import { SearchClient } from "./search_client.ts";
+import { SearchClient } from "./search-client.ts";
 
 function env(name: string): string | undefined {
   try {

@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { RedmineClient } from "./client.ts";
-import { RelationClient } from "./relation_client.ts";
+import { RelationClient } from "./relation-client.ts";
 
 function env(name: string): string | undefined {
   try {

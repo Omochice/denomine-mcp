@@ -20,7 +20,7 @@ import { wikiTool } from "../tools/wiki/mod.ts";
 import { versionTool } from "../tools/version/mod.ts";
 import { relationTool } from "../tools/relation/mod.ts";
 import { searchTool } from "../tools/search/mod.ts";
-import { timeEntryTool } from "../tools/time_entry/mod.ts";
+import { timeEntryTool } from "../tools/time-entry/mod.ts";
 import { enumerationTool } from "../tools/enumeration/mod.ts";
 import type { ToolModule } from "./tool.ts";
 import type { Mode } from "../tools/mode.ts";

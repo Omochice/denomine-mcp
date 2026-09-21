@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { RedmineClient } from "./client.ts";
-import { AttachmentClient } from "./attachment_client.ts";
+import { AttachmentClient } from "./attachment-client.ts";
 
 function env(name: string): string | undefined {
   try {

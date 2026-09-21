@@ -1,7 +1,7 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
-import { EnumerationClient } from "./enumeration_client.ts";
-import { TimeEntryClient } from "./time_entry_client.ts";
+import { EnumerationClient } from "./enumeration-client.ts";
+import { TimeEntryClient } from "./time-entry-client.ts";
 
 function env(name: string): string | undefined {
   try {

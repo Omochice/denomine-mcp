@@ -140,7 +140,7 @@ A failure that has no HTTP status â€” an existing file, an exceeded `maxSize` â€
 
 - `update` and `delete` exist on the library's attachment client but are not exposed; they would be write actions pruned by `--readonly` if added.
 - The real `LocalFile` cannot run under the unit tests' permissions; it was checked manually for the happy path, an existing file, a stream that errors midway, an over-limit stream, and an unopenable path.
-- `src/redmine/attachment_integration.test.ts` seeds an attachment with raw `POST /uploads.json` and `PUT /issues/:id.json` requests, because no port here creates one. It passes against the Redmine 7.0 of `compose.yaml`.
+- `src/redmine/attachment-integration.test.ts` seeds an attachment with raw `POST /uploads.json` and `PUT /issues/:id.json` requests, because no port here creates one. It passes against the Redmine 7.0 of `compose.yaml`.
 
 ## References
 
