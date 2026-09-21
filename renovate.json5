@@ -4,4 +4,11 @@
     "github>Omochice/personal-renovate-config#v1.18.0",
     "github>Omochice/renovate-config:deno#v4.1.1",
   ],
+  packageRules: [
+    {
+      description: "Skip the release age delay for the maintainer's own module",
+      matchPackageNames: ["@omochice/redmine"],
+      minimumReleaseAge: null,
+    },
+  ],
 }
