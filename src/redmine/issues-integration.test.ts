@@ -212,3 +212,50 @@ Deno.test({
     }
   },
 });
+
+async function createIssue(
+  client: RedmineClient,
+  subject: string,
+): Promise<number> {
+  const created = await client.create({
+    projectId,
+    trackerId: 1,
+    statusId: 1,
+    priorityId: 2,
+    subject,
+  });
+  expect(Result.isSuccess(created), JSON.stringify(created)).toBe(true);
+  const listed = Result.unwrap(await client.list({ projectId })) as {
+    id: number;
+    subject: string;
+  }[];
+  return listed.find((issue) => issue.subject === subject)!.id;
+}
+
+Deno.test({
+  name: "RedmineClient changes an issue's status against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async () => {
+    const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
+    const id = await createIssue(client, `denomine-mcp status ${Date.now()}`);
+    try {
+      const before = Result.unwrap(
+        await client.show(id, ["allowedStatuses"]),
+      ) as { status: { id: number }; allowedStatuses: { id: number }[] };
+      const target = before.allowedStatuses
+        .find((status) => status.id !== before.status.id);
+      expect(target, "the workflow should allow another status").toBeDefined();
+
+      const updated = await client.update(id, { statusId: target!.id });
+      expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+
+      const after = Result.unwrap(await client.show(id)) as {
+        status: { id: number };
+      };
+      expect(after.status.id).toBe(target!.id);
+    } finally {
+      await client.delete(id);
+    }
+  },
+});
