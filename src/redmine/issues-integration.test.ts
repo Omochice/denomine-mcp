@@ -259,3 +259,36 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "RedmineClient moves an issue under a parent against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
+    const name = `denomine-mcp parent ${Date.now()}`;
+    const parent = await createIssue(client, `${name} parent`);
+    const child = await createIssue(client, `${name} child`);
+
+    const shownParent = async () =>
+      (Result.unwrap(await client.show(child)) as { parent?: { id: number } })
+        .parent?.id;
+
+    try {
+      await t.step("update attaches the issue to a parent", async () => {
+        const updated = await client.update(child, { parentIssueId: parent });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownParent()).toBe(parent);
+      });
+
+      await t.step("update with null detaches it again", async () => {
+        const updated = await client.update(child, { parentIssueId: null });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownParent()).toBeUndefined();
+      });
+    } finally {
+      await client.delete(child);
+      await client.delete(parent);
+    }
+  },
+});
