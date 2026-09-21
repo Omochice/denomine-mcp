@@ -141,7 +141,12 @@ export const updateInput = v.object({
   id: v.number(),
   subject: v.optional(v.string()),
   description: v.optional(v.string()),
-  statusId: v.optional(v.number()),
+  statusId: v.optional(
+    describe(
+      v.number(),
+      'Status to move the issue to. Redmine ignores, without an error, a status the workflow does not allow; `show` with `include: ["allowedStatuses"]` lists the ones it does.',
+    ),
+  ),
   fixedVersionId: v.optional(
     describe(
       v.nullable(v.number()),
