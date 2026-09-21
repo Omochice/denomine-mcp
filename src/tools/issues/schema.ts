@@ -148,6 +148,7 @@ export const updateInput = v.object({
     ),
   ),
   priorityId: v.optional(v.number()),
+  trackerId: v.optional(v.number()),
   fixedVersionId: v.optional(
     describe(
       v.nullable(v.number()),
