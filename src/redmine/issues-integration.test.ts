@@ -1,6 +1,7 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
 import { RedmineClient } from "./client.ts";
+import { VersionClient } from "./version_client.ts";
 
 /** Reads an env var, treating a denied `--allow-env` as simply absent so the
  * suite can run under `--allow-read` alone and this test is skipped. */
@@ -89,5 +90,46 @@ Deno.test({
       expect(Result.isFailure(shown), "issue should be gone after delete")
         .toBe(true);
     });
+  },
+});
+
+Deno.test({
+  name:
+    "RedmineClient creates an issue inside a version against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async () => {
+    const context = { endpoint: endpoint!, apiKey: apiKey! };
+    const client = new RedmineClient(context);
+    const versions = new VersionClient(context);
+    const name = `denomine-mcp ${Date.now()}`;
+
+    const created = await versions.create(projectId, { name });
+    expect(Result.isSuccess(created), JSON.stringify(created)).toBe(true);
+    const listed = Result.unwrap(await versions.list(projectId)) as {
+      id: number;
+      name: string;
+    }[];
+    const fixedVersionId = listed.find((version) => version.name === name)!.id;
+
+    try {
+      const result = await client.create({
+        projectId,
+        trackerId: 1,
+        statusId: 1,
+        priorityId: 2,
+        subject: name,
+        fixedVersionId,
+      });
+      expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
+
+      const inVersion = Result.unwrap(
+        await client.list({ projectId, fixedVersionId }),
+      ) as { id: number; subject: string }[];
+      expect(inVersion.map((issue) => issue.subject)).toStrictEqual([name]);
+      await client.delete(inVersion[0].id);
+    } finally {
+      await versions.delete(fixedVersionId);
+    }
   },
 });

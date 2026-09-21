@@ -112,6 +112,7 @@ export type IssueCreate = {
   priorityId: number;
   subject: string;
   description?: string;
+  fixedVersionId?: number;
   assignedToId?: number;
   parentIssueId?: number;
   isPrivate?: boolean;

@@ -129,6 +129,7 @@ export const createInput = v.object({
   priorityId: v.number(),
   subject: v.string(),
   description: v.optional(v.string()),
+  fixedVersionId: v.optional(v.number()),
   assignedToId: v.optional(v.number()),
   parentIssueId: v.optional(v.number()),
   isPrivate: v.optional(v.boolean()),

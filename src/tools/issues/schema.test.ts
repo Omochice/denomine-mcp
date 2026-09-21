@@ -11,6 +11,19 @@ Deno.test("list keeps fixedVersionId so a version filter is not silently dropped
   expect(parsed).toStrictEqual({ action: "list", fixedVersionId: 42 });
 });
 
+Deno.test("create keeps fixedVersionId so the issue lands in the requested version", () => {
+  const input = {
+    action: "create",
+    projectId: 1,
+    trackerId: 1,
+    statusId: 1,
+    priorityId: 2,
+    subject: "planned",
+    fixedVersionId: 42,
+  };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
 Deno.test("show keeps the associations it was asked to include", () => {
   const parsed = v.parse(issueInputSchema("readonly"), {
     action: "show",
