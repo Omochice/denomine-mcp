@@ -173,6 +173,18 @@ export const updateInput = v.object({
       "Version to move the issue into; `null` takes it out of its version.",
     ),
   ),
+  startDate: v.optional(
+    describe(
+      isoDate,
+      "Day the issue starts, as an ISO date (`YYYY-MM-DD`). This is the date to write, not a filter: unlike `startDate` on `list`, no period or range is accepted here, and the field cannot be cleared through this tool.",
+    ),
+  ),
+  dueDate: v.optional(
+    describe(
+      isoDate,
+      "Day the issue is due, as an ISO date (`YYYY-MM-DD`). This is the date to write, not a filter: unlike `dueDate` on `list`, no period or range is accepted here, and the field cannot be cleared through this tool.",
+    ),
+  ),
   doneRatio: v.optional(v.number()),
   isPrivate: v.optional(v.boolean()),
   estimatedHours: v.optional(v.number()),
