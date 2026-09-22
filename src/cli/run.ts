@@ -1,4 +1,4 @@
-import { StdioServerTransport } from "npm:@modelcontextprotocol/sdk@1.30.0/server/stdio.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { RedmineClient } from "../redmine/client.ts";
 import { WikiClient } from "../redmine/wiki-client.ts";
 import { VersionClient } from "../redmine/version-client.ts";

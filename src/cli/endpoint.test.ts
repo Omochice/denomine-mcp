@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@1.0.20";
+import { expect } from "@std/expect";
 import { canonicalizeEndpoint } from "./endpoint.ts";
 
 Deno.test("canonicalizeEndpoint maps equivalent URLs to one account", () => {

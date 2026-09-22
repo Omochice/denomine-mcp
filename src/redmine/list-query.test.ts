@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@1.0.20";
+import { expect } from "@std/expect";
 import { toListOption } from "@omochice/redmine/issues/validator";
 import * as v from "@valibot/valibot";
 import { toListQuery } from "./list-query.ts";

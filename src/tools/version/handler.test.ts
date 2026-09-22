@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@1.0.20";
+import { expect } from "@std/expect";
 import { FakeVersionPort } from "../../redmine/fake.ts";
 import { handleVersion } from "./handler.ts";
 
