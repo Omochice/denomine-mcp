@@ -1,5 +1,6 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
+import { Redmine } from "@omochice/redmine";
 import { RedmineClient } from "./client.ts";
 import { VersionClient } from "./version-client.ts";
 
@@ -289,6 +290,49 @@ Deno.test({
     } finally {
       await client.delete(child);
       await client.delete(parent);
+    }
+  },
+});
+
+Deno.test({
+  name: "RedmineClient assigns and unassigns an issue against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const context = { endpoint: endpoint!, apiKey: apiKey! };
+    const client = new RedmineClient(context);
+    const redmine = new Redmine(context);
+    const me = await redmine.myAccount.show();
+    const roles = await Array.fromAsync(redmine.role.list());
+    await redmine.membership.create(projectId, {
+      userId: me.id,
+      roleIds: [roles[0].id],
+    });
+    const membership = (await Array.fromAsync(
+      redmine.membership.list(projectId),
+    )).find((m) => m.user?.id === me.id)!;
+    const id = await createIssue(client, `denomine-mcp assign ${Date.now()}`);
+
+    const shownAssignee = async () =>
+      (Result.unwrap(await client.show(id)) as {
+        assignedTo?: { id: number };
+      }).assignedTo?.id;
+
+    try {
+      await t.step("update assigns the issue to a project member", async () => {
+        const updated = await client.update(id, { assignedToId: me.id });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownAssignee()).toBe(me.id);
+      });
+
+      await t.step("update with null unassigns it", async () => {
+        const updated = await client.update(id, { assignedToId: null });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownAssignee()).toBeUndefined();
+      });
+    } finally {
+      await client.delete(id);
+      await redmine.membership.delete(membership.id);
     }
   },
 });
