@@ -336,3 +336,41 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "RedmineClient files an issue under a category against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const context = { endpoint: endpoint!, apiKey: apiKey! };
+    const client = new RedmineClient(context);
+    const redmine = new Redmine(context);
+    const name = `denomine-mcp category ${Date.now()}`;
+    await redmine.issueCategory.create(projectId, { name });
+    const category = (await Array.fromAsync(
+      redmine.issueCategory.list(projectId),
+    )).find((c) => c.name === name)!;
+    const id = await createIssue(client, name);
+
+    const shownCategory = async () =>
+      (Result.unwrap(await client.show(id)) as { category?: { id: number } })
+        .category?.id;
+
+    try {
+      await t.step("update files the issue under the category", async () => {
+        const updated = await client.update(id, { categoryId: category.id });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownCategory()).toBe(category.id);
+      });
+
+      await t.step("update with null removes the category", async () => {
+        const updated = await client.update(id, { categoryId: null });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownCategory()).toBeUndefined();
+      });
+    } finally {
+      await client.delete(id);
+      await redmine.issueCategory.delete(category.id);
+    }
+  },
+});
