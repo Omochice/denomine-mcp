@@ -374,3 +374,46 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name:
+    "RedmineClient changes an issue's tracker and priority against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const context = { endpoint: endpoint!, apiKey: apiKey! };
+    const client = new RedmineClient(context);
+    const redmine = new Redmine(context);
+    const id = await createIssue(client, `denomine-mcp tracker ${Date.now()}`);
+
+    const shown = async () =>
+      Result.unwrap(await client.show(id)) as {
+        tracker: { id: number };
+        priority: { id: number };
+        status: { id: number };
+      };
+
+    try {
+      const before = await shown();
+      const tracker = (await Array.fromAsync(redmine.tracker.list()))
+        .find((candidate) => candidate.id !== before.tracker.id)!;
+      const priority =
+        (await Array.fromAsync(redmine.enumeration.listIssuePriorities()))
+          .find((candidate) => candidate.id !== before.priority.id)!;
+
+      await t.step("update moves the issue to another tracker", async () => {
+        const updated = await client.update(id, { trackerId: tracker.id });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect((await shown()).tracker.id).toBe(tracker.id);
+      });
+
+      await t.step("update changes the priority", async () => {
+        const updated = await client.update(id, { priorityId: priority.id });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect((await shown()).priority.id).toBe(priority.id);
+      });
+    } finally {
+      await client.delete(id);
+    }
+  },
+});
