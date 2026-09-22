@@ -103,7 +103,7 @@ jobs:
   # The release matrix also runs here so a broken cross-build surfaces on the
   # pull request rather than at tag time, when the tag is already pushed.
   build:
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/build.yaml
 
   status-check:
     timeout-minutes: 5
