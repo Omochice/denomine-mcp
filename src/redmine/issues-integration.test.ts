@@ -1,5 +1,6 @@
 import { expect } from "jsr:@std/expect@1.0.20";
 import { Result } from "@praha/byethrow";
+import { Redmine } from "@omochice/redmine";
 import { RedmineClient } from "./client.ts";
 import { VersionClient } from "./version-client.ts";
 
@@ -209,6 +210,210 @@ Deno.test({
       }
       await versions.delete(from);
       await versions.delete(to);
+    }
+  },
+});
+
+async function createIssue(
+  client: RedmineClient,
+  subject: string,
+): Promise<number> {
+  const created = await client.create({
+    projectId,
+    trackerId: 1,
+    statusId: 1,
+    priorityId: 2,
+    subject,
+  });
+  expect(Result.isSuccess(created), JSON.stringify(created)).toBe(true);
+  const listed = Result.unwrap(await client.list({ projectId })) as {
+    id: number;
+    subject: string;
+  }[];
+  return listed.find((issue) => issue.subject === subject)!.id;
+}
+
+Deno.test({
+  name: "RedmineClient changes an issue's status against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async () => {
+    const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
+    const id = await createIssue(client, `denomine-mcp status ${Date.now()}`);
+    try {
+      const before = Result.unwrap(
+        await client.show(id, ["allowedStatuses"]),
+      ) as { status: { id: number }; allowedStatuses: { id: number }[] };
+      const target = before.allowedStatuses
+        .find((status) => status.id !== before.status.id);
+      expect(target, "the workflow should allow another status").toBeDefined();
+
+      const updated = await client.update(id, { statusId: target!.id });
+      expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+
+      const after = Result.unwrap(await client.show(id)) as {
+        status: { id: number };
+      };
+      expect(after.status.id).toBe(target!.id);
+    } finally {
+      await client.delete(id);
+    }
+  },
+});
+
+Deno.test({
+  name: "RedmineClient moves an issue under a parent against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
+    const name = `denomine-mcp parent ${Date.now()}`;
+    const parent = await createIssue(client, `${name} parent`);
+    const child = await createIssue(client, `${name} child`);
+
+    const shownParent = async () =>
+      (Result.unwrap(await client.show(child)) as { parent?: { id: number } })
+        .parent?.id;
+
+    try {
+      await t.step("update attaches the issue to a parent", async () => {
+        const updated = await client.update(child, { parentIssueId: parent });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownParent()).toBe(parent);
+      });
+
+      await t.step("update with null detaches it again", async () => {
+        const updated = await client.update(child, { parentIssueId: null });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownParent()).toBeUndefined();
+      });
+    } finally {
+      await client.delete(child);
+      await client.delete(parent);
+    }
+  },
+});
+
+Deno.test({
+  name: "RedmineClient assigns and unassigns an issue against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const context = { endpoint: endpoint!, apiKey: apiKey! };
+    const client = new RedmineClient(context);
+    const redmine = new Redmine(context);
+    const me = await redmine.myAccount.show();
+    const roles = await Array.fromAsync(redmine.role.list());
+    await redmine.membership.create(projectId, {
+      userId: me.id,
+      roleIds: [roles[0].id],
+    });
+    const membership = (await Array.fromAsync(
+      redmine.membership.list(projectId),
+    )).find((m) => m.user?.id === me.id)!;
+    const id = await createIssue(client, `denomine-mcp assign ${Date.now()}`);
+
+    const shownAssignee = async () =>
+      (Result.unwrap(await client.show(id)) as {
+        assignedTo?: { id: number };
+      }).assignedTo?.id;
+
+    try {
+      await t.step("update assigns the issue to a project member", async () => {
+        const updated = await client.update(id, { assignedToId: me.id });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownAssignee()).toBe(me.id);
+      });
+
+      await t.step("update with null unassigns it", async () => {
+        const updated = await client.update(id, { assignedToId: null });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownAssignee()).toBeUndefined();
+      });
+    } finally {
+      await client.delete(id);
+      await redmine.membership.delete(membership.id);
+    }
+  },
+});
+
+Deno.test({
+  name: "RedmineClient files an issue under a category against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const context = { endpoint: endpoint!, apiKey: apiKey! };
+    const client = new RedmineClient(context);
+    const redmine = new Redmine(context);
+    const name = `denomine-mcp category ${Date.now()}`;
+    await redmine.issueCategory.create(projectId, { name });
+    const category = (await Array.fromAsync(
+      redmine.issueCategory.list(projectId),
+    )).find((c) => c.name === name)!;
+    const id = await createIssue(client, name);
+
+    const shownCategory = async () =>
+      (Result.unwrap(await client.show(id)) as { category?: { id: number } })
+        .category?.id;
+
+    try {
+      await t.step("update files the issue under the category", async () => {
+        const updated = await client.update(id, { categoryId: category.id });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownCategory()).toBe(category.id);
+      });
+
+      await t.step("update with null removes the category", async () => {
+        const updated = await client.update(id, { categoryId: null });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect(await shownCategory()).toBeUndefined();
+      });
+    } finally {
+      await client.delete(id);
+      await redmine.issueCategory.delete(category.id);
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "RedmineClient changes an issue's tracker and priority against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const context = { endpoint: endpoint!, apiKey: apiKey! };
+    const client = new RedmineClient(context);
+    const redmine = new Redmine(context);
+    const id = await createIssue(client, `denomine-mcp tracker ${Date.now()}`);
+
+    const shown = async () =>
+      Result.unwrap(await client.show(id)) as {
+        tracker: { id: number };
+        priority: { id: number };
+        status: { id: number };
+      };
+
+    try {
+      const before = await shown();
+      const tracker = (await Array.fromAsync(redmine.tracker.list()))
+        .find((candidate) => candidate.id !== before.tracker.id)!;
+      const priority =
+        (await Array.fromAsync(redmine.enumeration.listIssuePriorities()))
+          .find((candidate) => candidate.id !== before.priority.id)!;
+
+      await t.step("update moves the issue to another tracker", async () => {
+        const updated = await client.update(id, { trackerId: tracker.id });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect((await shown()).tracker.id).toBe(tracker.id);
+      });
+
+      await t.step("update changes the priority", async () => {
+        const updated = await client.update(id, { priorityId: priority.id });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect((await shown()).priority.id).toBe(priority.id);
+      });
+    } finally {
+      await client.delete(id);
     }
   },
 });

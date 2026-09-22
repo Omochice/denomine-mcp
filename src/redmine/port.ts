@@ -122,6 +122,12 @@ export type IssueCreate = {
 export type IssueUpdate = {
   subject?: string;
   description?: string;
+  statusId?: number;
+  priorityId?: number;
+  trackerId?: number;
+  assignedToId?: number | null;
+  categoryId?: number | null;
+  parentIssueId?: number | null;
   fixedVersionId?: number | null;
   doneRatio?: number;
   isPrivate?: boolean;

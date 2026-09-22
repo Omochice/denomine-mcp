@@ -141,6 +141,32 @@ export const updateInput = v.object({
   id: v.number(),
   subject: v.optional(v.string()),
   description: v.optional(v.string()),
+  statusId: v.optional(
+    describe(
+      v.number(),
+      'Status to move the issue to. Redmine ignores, without an error, a status the workflow does not allow; `show` with `include: ["allowedStatuses"]` lists the ones it does.',
+    ),
+  ),
+  priorityId: v.optional(v.number()),
+  trackerId: v.optional(v.number()),
+  assignedToId: v.optional(
+    describe(
+      v.nullable(v.number()),
+      "User to assign the issue to; `null` unassigns it.",
+    ),
+  ),
+  categoryId: v.optional(
+    describe(
+      v.nullable(v.number()),
+      "Issue category to file the issue under; `null` removes the category.",
+    ),
+  ),
+  parentIssueId: v.optional(
+    describe(
+      v.nullable(v.number()),
+      "Issue to make the parent of this one; `null` detaches it from its parent.",
+    ),
+  ),
   fixedVersionId: v.optional(
     describe(
       v.nullable(v.number()),

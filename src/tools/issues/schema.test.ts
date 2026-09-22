@@ -31,6 +31,42 @@ Deno.test("update keeps fixedVersionId, where null takes the issue out of its ve
   }
 });
 
+Deno.test("update keeps statusId so an issue can be closed", () => {
+  const input = { action: "update", id: 1, statusId: 5 };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
+Deno.test("update keeps priorityId so an issue can be reprioritised", () => {
+  const input = { action: "update", id: 1, priorityId: 3 };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
+Deno.test("update keeps trackerId so an issue can be reclassified", () => {
+  const input = { action: "update", id: 1, trackerId: 2 };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
+Deno.test("update keeps assignedToId, where null unassigns the issue", () => {
+  for (const assignedToId of [7, null]) {
+    const input = { action: "update", id: 1, assignedToId };
+    expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+  }
+});
+
+Deno.test("update keeps categoryId, where null removes the category", () => {
+  for (const categoryId of [7, null]) {
+    const input = { action: "update", id: 1, categoryId };
+    expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+  }
+});
+
+Deno.test("update keeps parentIssueId, where null detaches the issue from its parent", () => {
+  for (const parentIssueId of [7, null]) {
+    const input = { action: "update", id: 1, parentIssueId };
+    expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+  }
+});
+
 Deno.test("create rejects a null fixedVersionId, since a new issue has no version to leave", () => {
   expect(
     v.safeParse(issueInputSchema("full"), {
@@ -146,22 +182,23 @@ type Branch = {
   properties?: { action?: { const?: unknown } };
 };
 
-function listProperties(): Record<string, { anyOf?: Branch[] }> {
-  const json = toObjectSchema(issueInputSchema("readonly"));
-  const list = (json.oneOf as Branch[])
-    .find((branch) => branch.properties?.action?.const === "list");
-  expect(list, "the list action should be advertised").toBeDefined();
-  return (list as unknown as {
-    properties: Record<string, { anyOf?: Branch[] }>;
-  }).properties;
+type Property = { description?: string; anyOf?: Branch[] };
+
+function propertiesOf(action: string): Record<string, Property> {
+  const json = toObjectSchema(issueInputSchema("full"));
+  const branch = (json.oneOf as Branch[])
+    .find((branch) => branch.properties?.action?.const === action);
+  expect(branch, `the ${action} action should be advertised`).toBeDefined();
+  return (branch as unknown as { properties: Record<string, Property> })
+    .properties;
 }
 
 Deno.test("the date filters survive the JSON Schema the server advertises", () => {
-  expect(listProperties().createdOn).toBeDefined();
+  expect(propertiesOf("list").createdOn).toBeDefined();
 });
 
 Deno.test("every date filter form advertises what it means", () => {
-  const properties = listProperties();
+  const properties = propertiesOf("list");
   let described = 0;
   for (
     const field of [
@@ -188,4 +225,10 @@ Deno.test("every date filter form advertises what it means", () => {
   const pastForms = 5;
   const futureForms = 4;
   expect(described).toBe(5 * pastForms + 2 * futureForms);
+});
+
+Deno.test("statusId advertises that a forbidden transition is ignored and where the allowed ones are listed", () => {
+  const description = propertiesOf("update").statusId.description ?? "";
+  expect(description).toContain("ignore");
+  expect(description).toContain("allowedStatuses");
 });
