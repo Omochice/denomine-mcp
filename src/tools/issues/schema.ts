@@ -175,14 +175,14 @@ export const updateInput = v.object({
   ),
   startDate: v.optional(
     describe(
-      isoDate,
-      "Day the issue starts, as an ISO date (`YYYY-MM-DD`). This is the date to write, not a filter: unlike `startDate` on `list`, no period or range is accepted here, and the field cannot be cleared through this tool.",
+      v.nullable(isoDate),
+      "Day the issue starts, as an ISO date (`YYYY-MM-DD`); `null` clears the date. This is the date to write, not a filter: unlike `startDate` on `list`, no period or range is accepted here.",
     ),
   ),
   dueDate: v.optional(
     describe(
-      isoDate,
-      "Day the issue is due, as an ISO date (`YYYY-MM-DD`). This is the date to write, not a filter: unlike `dueDate` on `list`, no period or range is accepted here, and the field cannot be cleared through this tool.",
+      v.nullable(isoDate),
+      "Day the issue is due, as an ISO date (`YYYY-MM-DD`); `null` clears the date. This is the date to write, not a filter: unlike `dueDate` on `list`, no period or range is accepted here.",
     ),
   ),
   doneRatio: v.optional(v.number()),

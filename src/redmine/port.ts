@@ -129,8 +129,8 @@ export type IssueUpdate = {
   categoryId?: number | null;
   parentIssueId?: number | null;
   fixedVersionId?: number | null;
-  startDate?: IsoDate;
-  dueDate?: IsoDate;
+  startDate?: IsoDate | null;
+  dueDate?: IsoDate | null;
   doneRatio?: number;
   isPrivate?: boolean;
   estimatedHours?: number;
