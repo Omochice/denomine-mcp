@@ -26,3 +26,10 @@ Deno.test("a day its month does not have is refused, not rolled over", () => {
   expect(() => toIssueDates({ dueDate: "2026-02-30" })).toThrow();
   expect(() => toIssueDates({ startDate: "2026-02-30" })).toThrow();
 });
+
+Deno.test("a null date is handed over as null, so Redmine clears the field", () => {
+  expect(toIssueDates({ startDate: null, dueDate: null })).toStrictEqual({
+    startDate: null,
+    dueDate: null,
+  });
+});

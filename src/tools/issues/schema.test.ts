@@ -77,6 +77,11 @@ Deno.test("update keeps startDate and dueDate so an issue can be scheduled", () 
   expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
 });
 
+Deno.test("update keeps a null startDate and dueDate, where null clears the date", () => {
+  const input = { action: "update", id: 1, startDate: null, dueDate: null };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
 Deno.test("update rejects the filter forms of the date fields, which name no day to write", () => {
   for (
     const input of [
@@ -251,12 +256,13 @@ Deno.test("every date filter form advertises what it means", () => {
   expect(described).toBe(5 * pastForms + 2 * futureForms);
 });
 
-Deno.test("the update dates advertise that they are written, not filtered, and cannot be cleared", () => {
+Deno.test("the update dates advertise that they are written, not filtered, and that null clears them", () => {
   const properties = propertiesOf("update");
   for (const field of ["startDate", "dueDate"]) {
     const description = properties[field].description ?? "";
     expect(description).toContain("YYYY-MM-DD");
-    expect(description).toContain("cannot be cleared");
+    expect(description).toContain("`null` clears");
+    expect(description).not.toContain("cannot be cleared");
   }
 });
 
