@@ -67,6 +67,30 @@ Deno.test("update keeps parentIssueId, where null detaches the issue from its pa
   }
 });
 
+Deno.test("update keeps startDate and dueDate so an issue can be scheduled", () => {
+  const input = {
+    action: "update",
+    id: 1,
+    startDate: "2026-07-01",
+    dueDate: "2026-07-31",
+  };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
+Deno.test("update rejects the filter forms of the date fields, which name no day to write", () => {
+  for (
+    const input of [
+      { action: "update", id: 1, startDate: { daysFromNow: 3 } },
+      { action: "update", id: 1, dueDate: "nextWeek" },
+    ]
+  ) {
+    expect(
+      !v.safeParse(issueInputSchema("full"), input).success,
+      `update accepted ${JSON.stringify(input)}, which is a list filter`,
+    ).toBe(true);
+  }
+});
+
 Deno.test("create rejects a null fixedVersionId, since a new issue has no version to leave", () => {
   expect(
     v.safeParse(issueInputSchema("full"), {
@@ -225,6 +249,15 @@ Deno.test("every date filter form advertises what it means", () => {
   const pastForms = 5;
   const futureForms = 4;
   expect(described).toBe(5 * pastForms + 2 * futureForms);
+});
+
+Deno.test("the update dates advertise that they are written, not filtered, and cannot be cleared", () => {
+  const properties = propertiesOf("update");
+  for (const field of ["startDate", "dueDate"]) {
+    const description = properties[field].description ?? "";
+    expect(description).toContain("YYYY-MM-DD");
+    expect(description).toContain("cannot be cleared");
+  }
 });
 
 Deno.test("statusId advertises that a forbidden transition is ignored and where the allowed ones are listed", () => {
