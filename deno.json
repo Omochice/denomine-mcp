@@ -7,11 +7,6 @@
     "exclude": ["CHANGELOG.md"],
     "proseWrap": "preserve"
   },
-  "lint": {
-    "rules": {
-      "exclude": ["no-import-prefix"]
-    }
-  },
   "tasks": {
     "dev": "deno run --allow-all main.ts",
     "test": "deno test --allow-read src/",
