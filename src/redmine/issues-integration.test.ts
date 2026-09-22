@@ -262,6 +262,32 @@ Deno.test({
 });
 
 Deno.test({
+  name:
+    "RedmineClient sets an issue's start and due dates against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async () => {
+    const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
+    const id = await createIssue(client, `denomine-mcp dates ${Date.now()}`);
+    const startDate = "2099-07-01";
+    const dueDate = "2099-07-31";
+    try {
+      const updated = await client.update(id, { startDate, dueDate });
+      expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+
+      const shown = Result.unwrap(await client.show(id)) as {
+        startDate: Date;
+        dueDate: Date;
+      };
+      expect(shown.startDate.toISOString().slice(0, 10)).toBe(startDate);
+      expect(shown.dueDate.toISOString().slice(0, 10)).toBe(dueDate);
+    } finally {
+      await client.delete(id);
+    }
+  },
+});
+
+Deno.test({
   name: "RedmineClient moves an issue under a parent against a live Redmine",
   ignore: endpoint === undefined || apiKey === undefined,
   sanitizeResources: false,
