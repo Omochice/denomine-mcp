@@ -33,3 +33,19 @@ Deno.test("a null date is handed over as null, so Redmine clears the field", () 
     dueDate: null,
   });
 });
+
+Deno.test("the dates of a new issue become UTC days alongside its other attributes", () => {
+  expect(
+    toIssueDates({
+      projectId: 1,
+      subject: "planned",
+      startDate: "2026-07-01",
+      dueDate: "2026-07-31",
+    }),
+  ).toStrictEqual({
+    projectId: 1,
+    subject: "planned",
+    startDate: new Date("2026-07-01T00:00:00Z"),
+    dueDate: new Date("2026-07-31T00:00:00Z"),
+  });
+});

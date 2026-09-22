@@ -110,6 +110,48 @@ Deno.test("create rejects a null fixedVersionId, since a new issue has no versio
   ).toBe(false);
 });
 
+const newIssue = {
+  action: "create",
+  projectId: 1,
+  trackerId: 1,
+  statusId: 1,
+  priorityId: 2,
+  subject: "planned",
+};
+
+Deno.test("create keeps startDate and dueDate so an issue can be scheduled from the start", () => {
+  const input = { ...newIssue, startDate: "2026-07-01", dueDate: "2026-07-31" };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
+Deno.test("create rejects a null date, since a new issue has no date to clear", () => {
+  for (
+    const input of [
+      { ...newIssue, startDate: null },
+      { ...newIssue, dueDate: null },
+    ]
+  ) {
+    expect(
+      !v.safeParse(issueInputSchema("full"), input).success,
+      `create accepted ${JSON.stringify(input)}`,
+    ).toBe(true);
+  }
+});
+
+Deno.test("create rejects the filter forms of the date fields, which name no day to write", () => {
+  for (
+    const input of [
+      { ...newIssue, startDate: { daysFromNow: 3 } },
+      { ...newIssue, dueDate: "nextWeek" },
+    ]
+  ) {
+    expect(
+      !v.safeParse(issueInputSchema("full"), input).success,
+      `create accepted ${JSON.stringify(input)}, which is a list filter`,
+    ).toBe(true);
+  }
+});
+
 Deno.test("show keeps the associations it was asked to include", () => {
   const parsed = v.parse(issueInputSchema("readonly"), {
     action: "show",
@@ -263,6 +305,15 @@ Deno.test("the update dates advertise that they are written, not filtered, and t
     expect(description).toContain("YYYY-MM-DD");
     expect(description).toContain("`null` clears");
     expect(description).not.toContain("cannot be cleared");
+  }
+});
+
+Deno.test("the create dates advertise that they are written, not filtered", () => {
+  const properties = propertiesOf("create");
+  for (const field of ["startDate", "dueDate"]) {
+    const description = properties[field]?.description ?? "";
+    expect(description).toContain("YYYY-MM-DD");
+    expect(description).toContain("on `list`");
   }
 });
 
