@@ -1,7 +1,7 @@
 import { Redmine } from "@omochice/redmine";
 import { Result } from "@praha/byethrow";
 import { toListQuery } from "./list-query.ts";
-import { toUpdateQuery } from "./update-query.ts";
+import { toIssueDates } from "./issue-dates.ts";
 import { toRedmineError } from "./error.ts";
 import { toIncludes } from "./include.ts";
 import type {
@@ -50,7 +50,7 @@ export class RedmineClient implements IssuePort {
   create(attrs: IssueCreate): Promise<RedmineResult<null>> {
     return Result.try({
       try: async () => {
-        await this.#redmine.issue.create(attrs);
+        await this.#redmine.issue.create(toIssueDates(attrs));
         return null;
       },
       catch: toRedmineError,
@@ -60,7 +60,7 @@ export class RedmineClient implements IssuePort {
   update(id: number, attrs: IssueUpdate): Promise<RedmineResult<null>> {
     return Result.try({
       try: async () => {
-        await this.#redmine.issue.update(id, toUpdateQuery(attrs));
+        await this.#redmine.issue.update(id, toIssueDates(attrs));
         return null;
       },
       catch: toRedmineError,
