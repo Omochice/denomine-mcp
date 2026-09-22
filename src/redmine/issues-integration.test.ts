@@ -288,6 +288,83 @@ Deno.test({
 });
 
 Deno.test({
+  name:
+    "RedmineClient clears an issue's start and due dates against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async () => {
+    const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
+    const id = await createIssue(client, `denomine-mcp clear ${Date.now()}`);
+    try {
+      const scheduled = await client.update(id, {
+        startDate: "2099-07-01",
+        dueDate: "2099-07-31",
+      });
+      expect(Result.isSuccess(scheduled), JSON.stringify(scheduled)).toBe(true);
+
+      const cleared = await client.update(id, {
+        startDate: null,
+        dueDate: null,
+      });
+      expect(Result.isSuccess(cleared), JSON.stringify(cleared)).toBe(true);
+
+      const shown = Result.unwrap(await client.show(id)) as {
+        startDate?: Date;
+        dueDate?: Date;
+      };
+      expect(shown.startDate).toBeUndefined();
+      expect(shown.dueDate).toBeUndefined();
+    } finally {
+      await client.delete(id);
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "RedmineClient creates an issue with start and due dates against a live Redmine",
+  ignore: endpoint === undefined || apiKey === undefined,
+  sanitizeResources: false,
+  fn: async () => {
+    const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
+    const subject = `denomine-mcp create dates ${Date.now()}`;
+    const startDate = "2099-07-01";
+    const dueDate = "2099-07-31";
+    const findId = async () =>
+      (Result.unwrap(await client.list({ projectId })) as {
+        id: number;
+        subject: string;
+      }[]).find((issue) => issue.subject === subject)?.id;
+    try {
+      const created = await client.create({
+        projectId,
+        trackerId: 1,
+        statusId: 1,
+        priorityId: 2,
+        subject,
+        startDate,
+        dueDate,
+      });
+      expect(Result.isSuccess(created), JSON.stringify(created)).toBe(true);
+
+      const id = await findId();
+      expect(id, "created issue not found in list").toBeDefined();
+      const shown = Result.unwrap(await client.show(id!)) as {
+        startDate: Date;
+        dueDate: Date;
+      };
+      expect(shown.startDate.toISOString().slice(0, 10)).toBe(startDate);
+      expect(shown.dueDate.toISOString().slice(0, 10)).toBe(dueDate);
+    } finally {
+      const id = await findId();
+      if (id !== undefined) {
+        await client.delete(id);
+      }
+    }
+  },
+});
+
+Deno.test({
   name: "RedmineClient moves an issue under a parent against a live Redmine",
   ignore: endpoint === undefined || apiKey === undefined,
   sanitizeResources: false,
