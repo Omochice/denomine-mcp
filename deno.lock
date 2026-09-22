@@ -9,7 +9,7 @@
     "jsr:@cliffy/prompt@1.3.1": "1.3.1",
     "jsr:@cliffy/table@^1.3.1": "1.3.1",
     "jsr:@cliffy/upgrade@^1.3.1": "1.3.1",
-    "jsr:@omochice/redmine@3.5.1": "3.5.1",
+    "jsr:@omochice/redmine@3.6.0": "3.6.0",
     "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/encoding@^1.0.11": "1.0.11",
     "jsr:@std/expect@1.0.20": "1.0.20",
@@ -95,8 +95,8 @@
         "jsr:@std/tar"
       ]
     },
-    "@omochice/redmine@3.5.1": {
-      "integrity": "48e69a64fa7a18668204cdc34c032bb6697d00a565f1d93aae586054162fc321",
+    "@omochice/redmine@3.6.0": {
+      "integrity": "8bcd9b99068689d586510ad7cc911c7b0f55ae3495b6a6a46f758260c858bcc0",
       "dependencies": [
         "jsr:@std/http",
         "jsr:@std/path@1.1.6",
@@ -831,7 +831,7 @@
     "dependencies": [
       "jsr:@cliffy/command@1.3.1",
       "jsr:@cliffy/prompt@1.3.1",
-      "jsr:@omochice/redmine@3.5.1",
+      "jsr:@omochice/redmine@3.6.0",
       "jsr:@std/expect@1.0.20",
       "jsr:@std/text@1.0.19",
       "jsr:@valibot/to-json-schema@1.8.0",

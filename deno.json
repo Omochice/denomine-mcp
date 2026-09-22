@@ -19,7 +19,7 @@
     "@cliffy/command": "jsr:@cliffy/command@1.3.1",
     "@cliffy/prompt": "jsr:@cliffy/prompt@1.3.1",
     "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@1.30.0",
-    "@omochice/redmine": "jsr:@omochice/redmine@3.5.1",
+    "@omochice/redmine": "jsr:@omochice/redmine@3.6.0",
     "@praha/byethrow": "npm:@praha/byethrow@0.12.0",
     "@std/expect": "jsr:@std/expect@1.0.20",
     "@std/text": "jsr:@std/text@1.0.19",
