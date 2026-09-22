@@ -12,16 +12,16 @@ crate-type = ["cdylib"]
 # expose one drags in the sqlite-backed `db-keystore` (a ~14 MB cdylib). Its own
 # docs point anything needing more than `v1` straight at `keyring-core` plus the
 # desired stores, which is what this crate does.
-keyring-core = "1"
+keyring-core = "=1.0.0"
 
 # The store crates are selected per target rather than per feature so that no
 # platform pulls in another platform's backend. The `cfg` expressions mirror
 # those `keyring` itself uses, to stay on its supported combinations.
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-apple-native-keyring-store = { version = "1", features = ["keychain"] }
+apple-native-keyring-store = { version = "=1.0.2", features = ["keychain"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows-native-keyring-store = "1"
+windows-native-keyring-store = "=1.1.0"
 
 [target.'cfg(all(unix, not(any(target_os = "macos", target_os = "ios", target_os = "android"))))'.dependencies]
-zbus-secret-service-keyring-store = { version = "1", features = ["crypto-rust"] }
+zbus-secret-service-keyring-store = { version = "=1.0.1", features = ["crypto-rust"] }

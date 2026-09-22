@@ -7,11 +7,6 @@
     "exclude": ["CHANGELOG.md"],
     "proseWrap": "preserve"
   },
-  "lint": {
-    "rules": {
-      "exclude": ["no-import-prefix"]
-    }
-  },
   "tasks": {
     "dev": "deno run --allow-all main.ts",
     "test": "deno test --allow-read src/",
@@ -21,12 +16,14 @@
     "compile": "deno task build:ffi && deno task compile:bin"
   },
   "imports": {
-    "@cliffy/command": "jsr:@cliffy/command@^1.2.1",
-    "@cliffy/prompt": "jsr:@cliffy/prompt@^1.2.1",
-    "@omochice/redmine": "jsr:@omochice/redmine@^3.5.1",
-    "@praha/byethrow": "npm:@praha/byethrow@^0.12.0",
-    "@std/text": "jsr:@std/text@^1.0.19",
-    "@valibot/to-json-schema": "jsr:@valibot/to-json-schema@^1.7.1",
-    "@valibot/valibot": "jsr:@valibot/valibot@^1.4.2"
+    "@cliffy/command": "jsr:@cliffy/command@1.3.1",
+    "@cliffy/prompt": "jsr:@cliffy/prompt@1.3.1",
+    "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@1.30.0",
+    "@omochice/redmine": "jsr:@omochice/redmine@3.5.1",
+    "@praha/byethrow": "npm:@praha/byethrow@0.12.0",
+    "@std/expect": "jsr:@std/expect@1.0.20",
+    "@std/text": "jsr:@std/text@1.0.19",
+    "@valibot/to-json-schema": "jsr:@valibot/to-json-schema@1.8.0",
+    "@valibot/valibot": "jsr:@valibot/valibot@1.5.0"
   }
 }

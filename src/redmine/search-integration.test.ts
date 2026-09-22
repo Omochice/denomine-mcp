@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@1.0.20";
+import { expect } from "@std/expect";
 import { Result } from "@praha/byethrow";
 import { SearchClient } from "./search-client.ts";
 

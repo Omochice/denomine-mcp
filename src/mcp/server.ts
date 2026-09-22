@@ -1,9 +1,9 @@
-import { Server } from "npm:@modelcontextprotocol/sdk@1.30.0/server/index.js";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   type CallToolRequest,
   CallToolRequestSchema,
   ListToolsRequestSchema,
-} from "npm:@modelcontextprotocol/sdk@1.30.0/types.js";
+} from "@modelcontextprotocol/sdk/types.js";
 import * as v from "@valibot/valibot";
 import type { Mode } from "../tools/mode.ts";
 import type { ToolResponse } from "../tools/response.ts";

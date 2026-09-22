@@ -1,4 +1,4 @@
-import { expect } from "jsr:@std/expect@1.0.20";
+import { expect } from "@std/expect";
 import * as v from "@valibot/valibot";
 import { toObjectSchema } from "../../mcp/tool.ts";
 import { issueInputSchema } from "./schema.ts";
