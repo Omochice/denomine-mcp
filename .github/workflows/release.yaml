@@ -32,7 +32,7 @@ jobs:
   build:
     needs: release-please
     if: needs.release-please.outputs.released == 'true'
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/build.yaml
 
   publish:
     needs: [release-please, build]
