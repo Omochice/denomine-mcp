@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/Omochice/denomine-mcp/compare/v0.3.0...v0.4.0) (2026-09-22)
+
+
+### Features
+
+* change an issue's status, assignee, and other fields on update ([#59](https://github.com/Omochice/denomine-mcp/issues/59)) ([0975fee](https://github.com/Omochice/denomine-mcp/commit/0975fee18e5ac13ab2af0ff99e08ce09951c76a5))
+* download Redmine attachments to a local file ([#54](https://github.com/Omochice/denomine-mcp/issues/54)) ([e3e291f](https://github.com/Omochice/denomine-mcp/commit/e3e291ff57505a6c812422aeb5109407492b52bc))
+* plan issues into versions and move them between versions ([#57](https://github.com/Omochice/denomine-mcp/issues/57)) ([097d38e](https://github.com/Omochice/denomine-mcp/commit/097d38ecb2e46309f84c7ad903cfcd34b6f9dc35))
+
+
+### Bug Fixes
+
+* report the released version in the MCP server info ([#50](https://github.com/Omochice/denomine-mcp/issues/50)) ([d4c0e30](https://github.com/Omochice/denomine-mcp/commit/d4c0e30df70d8d3cc2d59d624b5637acbff1edb0))
+
 ## [0.3.0](https://github.com/Omochice/denomine-mcp/compare/v0.2.0...v0.3.0) (2026-09-13)
 
 
