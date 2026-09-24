@@ -115,6 +115,8 @@ export type IssueCreate = {
   fixedVersionId?: number;
   assignedToId?: number;
   parentIssueId?: number;
+  startDate?: IsoDate;
+  dueDate?: IsoDate;
   isPrivate?: boolean;
   estimatedHours?: number;
 };
@@ -129,6 +131,8 @@ export type IssueUpdate = {
   categoryId?: number | null;
   parentIssueId?: number | null;
   fixedVersionId?: number | null;
+  startDate?: IsoDate | null;
+  dueDate?: IsoDate | null;
   doneRatio?: number;
   isPrivate?: boolean;
   estimatedHours?: number;

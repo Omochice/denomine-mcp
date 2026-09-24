@@ -132,6 +132,18 @@ export const createInput = v.object({
   fixedVersionId: v.optional(v.number()),
   assignedToId: v.optional(v.number()),
   parentIssueId: v.optional(v.number()),
+  startDate: v.optional(
+    describe(
+      isoDate,
+      "Day the issue starts, as an ISO date (`YYYY-MM-DD`). This is the date to write, not a filter: unlike `startDate` on `list`, no period or range is accepted here.",
+    ),
+  ),
+  dueDate: v.optional(
+    describe(
+      isoDate,
+      "Day the issue is due, as an ISO date (`YYYY-MM-DD`). This is the date to write, not a filter: unlike `dueDate` on `list`, no period or range is accepted here.",
+    ),
+  ),
   isPrivate: v.optional(v.boolean()),
   estimatedHours: v.optional(v.number()),
 });
@@ -171,6 +183,18 @@ export const updateInput = v.object({
     describe(
       v.nullable(v.number()),
       "Version to move the issue into; `null` takes it out of its version.",
+    ),
+  ),
+  startDate: v.optional(
+    describe(
+      v.nullable(isoDate),
+      "Day the issue starts, as an ISO date (`YYYY-MM-DD`); `null` clears the date. This is the date to write, not a filter: unlike `startDate` on `list`, no period or range is accepted here.",
+    ),
+  ),
+  dueDate: v.optional(
+    describe(
+      v.nullable(isoDate),
+      "Day the issue is due, as an ISO date (`YYYY-MM-DD`); `null` clears the date. This is the date to write, not a filter: unlike `dueDate` on `list`, no period or range is accepted here.",
     ),
   ),
   doneRatio: v.optional(v.number()),
