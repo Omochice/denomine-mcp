@@ -6,8 +6,8 @@ import { toDate } from "./iso-date.ts";
 import type { IsoDate, IssueCreate, IssueUpdate } from "./port.ts";
 
 /**
- * Rewrites the start and due dates of issue attributes into the shape
- * `@omochice/redmine` expects, leaving every other attribute untouched.
+ * Turns the start and due dates of issue attributes into `Date`s, leaving
+ * every other attribute untouched.
  *
  * @throws {Error} when a date names a day the calendar does not have.
  */

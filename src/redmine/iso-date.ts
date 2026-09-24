@@ -1,13 +1,9 @@
 import type { IsoDate } from "./port.ts";
 
 /**
- * Turns an ISO date (`YYYY-MM-DD`) into the `Date` `@omochice/redmine` expects.
+ * Turns an ISO date (`YYYY-MM-DD`) into a `Date` at UTC midnight of that day.
  *
- * Parsed at UTC midnight rather than from local calendar fields, because the
- * library serializes a Date by its UTC day.
- *
- * @throws {Error} when the calendar has no such day, since `Date` would roll
- * it over into the next month instead.
+ * @throws {Error} when the calendar has no such day.
  */
 export function toDate(value: IsoDate): Date {
   const date = new Date(`${value}T00:00:00Z`);
