@@ -4,7 +4,7 @@ metadata:
   name: denomine-mcp
   owner: Omochice
 spec:
-  description: ""
+  description: "MCP server for Redmine that keeps the API key in the OS credential store instead of environment variables"
   visibility: public
   archived: false
   features:
