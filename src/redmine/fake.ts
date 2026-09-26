@@ -40,10 +40,10 @@ export class FakeIssuePort implements IssuePort {
 
   list(query: IssueListQuery): Promise<RedmineResult<unknown>> {
     let issues = [...this.#issues.values()];
-    if (query.projectId !== undefined) {
+    if (query.projectId != null) {
       issues = issues.filter((i) => i.projectId === query.projectId);
     }
-    if (query.limit !== undefined) {
+    if (query.limit != null) {
       issues = issues.slice(0, query.limit);
     }
     return Promise.resolve(Result.succeed({ issues }));
@@ -54,7 +54,7 @@ export class FakeIssuePort implements IssuePort {
     include?: IssueInclude[],
   ): Promise<RedmineResult<unknown>> {
     const issue = this.#issues.get(id);
-    if (issue === undefined) {
+    if (issue == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     // Redmine leaves an association out entirely unless it was asked for, so
@@ -80,11 +80,11 @@ export class FakeIssuePort implements IssuePort {
 
   update(id: number, attrs: IssueUpdate): Promise<RedmineResult<null>> {
     const issue = this.#issues.get(id);
-    if (issue === undefined) {
+    if (issue == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     const { notes, ...fields } = attrs;
-    if (notes !== undefined) {
+    if (notes != null) {
       this.#journals.set(id, [...(this.#journals.get(id) ?? []), { notes }]);
     }
     this.#issues.set(id, { ...issue, ...fields });
@@ -128,7 +128,7 @@ export class FakeWikiPort implements WikiPort {
     _version?: number,
   ): Promise<RedmineResult<unknown>> {
     const page = this.#pages.get(this.#key(projectId, title));
-    if (page === undefined) {
+    if (page == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     return Promise.resolve(Result.succeed({ wiki_page: page }));
@@ -157,7 +157,7 @@ export class FakeWikiPort implements WikiPort {
   ): Promise<RedmineResult<null>> {
     const key = this.#key(projectId, wiki.title);
     const page = this.#pages.get(key);
-    if (page === undefined) {
+    if (page == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     this.#pages.set(key, { ...page, ...wiki, version: page.version + 1 });
@@ -199,7 +199,7 @@ export class FakeVersionPort implements VersionPort {
 
   show(id: number): Promise<RedmineResult<unknown>> {
     const version = this.#versions.get(id);
-    if (version === undefined) {
+    if (version == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     return Promise.resolve(Result.succeed({ version }));
@@ -221,7 +221,7 @@ export class FakeVersionPort implements VersionPort {
 
   update(id: number, attrs: VersionUpdate): Promise<RedmineResult<null>> {
     const version = this.#versions.get(id);
-    if (version === undefined) {
+    if (version == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     this.#versions.set(id, { ...version, ...attrs });
@@ -311,7 +311,7 @@ export class FakeRelationPort implements RelationPort {
 
   show(id: number): Promise<RedmineResult<unknown>> {
     const relation = this.#relations.get(id);
-    if (relation === undefined) {
+    if (relation == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     return Promise.resolve(Result.succeed({ relation }));
@@ -364,18 +364,18 @@ export class FakeTimeEntryPort implements TimeEntryPort {
   list(query: TimeEntryListQuery): Promise<RedmineResult<unknown>> {
     const timeEntries = [...this.#entries.values()].filter((entry) => {
       if (
-        query.projectId !== undefined && entry.projectId !== query.projectId
+        query.projectId != null && entry.projectId !== query.projectId
       ) {
         return false;
       }
-      return query.userId === undefined || entry.userId === query.userId;
+      return query.userId == null || entry.userId === query.userId;
     });
     return Promise.resolve(Result.succeed({ timeEntries }));
   }
 
   show(id: number): Promise<RedmineResult<unknown>> {
     const entry = this.#entries.get(id);
-    if (entry === undefined) {
+    if (entry == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     return Promise.resolve(Result.succeed({ timeEntry: entry }));
@@ -383,7 +383,7 @@ export class FakeTimeEntryPort implements TimeEntryPort {
 
   create(attrs: TimeEntryCreate): Promise<RedmineResult<null>> {
     const invalid = this.#invalidHours(attrs.hours);
-    if (invalid !== undefined) {
+    if (invalid != null) {
       return Promise.resolve(Result.fail(invalid));
     }
     const id = this.#nextId++;
@@ -393,13 +393,13 @@ export class FakeTimeEntryPort implements TimeEntryPort {
 
   update(id: number, attrs: TimeEntryUpdate): Promise<RedmineResult<null>> {
     const entry = this.#entries.get(id);
-    if (entry === undefined) {
+    if (entry == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
-    const invalid = attrs.hours === undefined
+    const invalid = attrs.hours == null
       ? undefined
       : this.#invalidHours(attrs.hours);
-    if (invalid !== undefined) {
+    if (invalid != null) {
       return Promise.resolve(Result.fail(invalid));
     }
     this.#entries.set(id, { ...entry, ...attrs });
@@ -482,7 +482,7 @@ export class FakeAttachmentPort implements AttachmentPort {
 
   show(id: number): Promise<RedmineResult<unknown>> {
     const attachment = this.#attachments.get(id);
-    if (attachment === undefined) {
+    if (attachment == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     return Promise.resolve(Result.succeed({ attachment: attachment.metadata }));
@@ -490,7 +490,7 @@ export class FakeAttachmentPort implements AttachmentPort {
 
   download(id: number): Promise<RedmineResult<AttachmentContent>> {
     const attachment = this.#attachments.get(id);
-    if (attachment === undefined) {
+    if (attachment == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
     const bytes = new TextEncoder().encode(attachment.content);

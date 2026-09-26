@@ -19,7 +19,7 @@ function withDates<T extends Record<string, unknown>, K extends keyof T>(
   const converted = { ...attrs } as Record<string, unknown>;
   for (const key of keys) {
     const value = attrs[key] as IsoDate | undefined;
-    if (value !== undefined) {
+    if (value != null) {
       converted[key as string] = new Date(value);
     }
   }

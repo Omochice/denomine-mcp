@@ -20,7 +20,7 @@ const spentOn = "2026-01-15";
 /** Exercises the real time entry client against a live Redmine (doc/verification.md). */
 Deno.test({
   name: "TimeEntryClient runs time entry CRUD against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const context = { endpoint: endpoint!, apiKey: apiKey! };

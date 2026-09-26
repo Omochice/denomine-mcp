@@ -19,7 +19,7 @@ function toLibraryQuery<T extends { dueDate?: string }>(
   attrs: T,
 ): Omit<T, "dueDate"> & { dueDate?: Date } {
   const { dueDate, ...rest } = attrs;
-  return dueDate === undefined ? rest : { ...rest, dueDate: new Date(dueDate) };
+  return dueDate == null ? rest : { ...rest, dueDate: new Date(dueDate) };
 }
 
 /**

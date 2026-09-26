@@ -35,12 +35,12 @@ export function toListQuery(query: IssueListQuery): ListIssueQuery {
   const includes = toListIncludes(include);
   return {
     ...rest,
-    ...(includes === undefined ? {} : { include: includes }),
-    ...(startDate === undefined ? {} : { startDate: toFilter(startDate) }),
-    ...(dueDate === undefined ? {} : { dueDate: toFilter(dueDate) }),
-    ...(createdOn === undefined ? {} : { createdOn: toFilter(createdOn) }),
-    ...(updatedOn === undefined ? {} : { updatedOn: toFilter(updatedOn) }),
-    ...(closedOn === undefined ? {} : { closedOn: toFilter(closedOn) }),
+    ...(includes == null ? {} : { include: includes }),
+    ...(startDate == null ? {} : { startDate: toFilter(startDate) }),
+    ...(dueDate == null ? {} : { dueDate: toFilter(dueDate) }),
+    ...(createdOn == null ? {} : { createdOn: toFilter(createdOn) }),
+    ...(updatedOn == null ? {} : { updatedOn: toFilter(updatedOn) }),
+    ...(closedOn == null ? {} : { closedOn: toFilter(closedOn) }),
   };
 }
 
@@ -74,13 +74,13 @@ function toFilter(filter: DateFilter): LibraryDateFilter {
     }
     return to === "today" ? { from, to } : { from };
   }
-  if (from !== undefined && to !== undefined) {
+  if (from != null && to != null) {
     return { from: toDate(from), to: toDate(to) };
   }
-  if (from !== undefined) {
+  if (from != null) {
     return { from: toDate(from) };
   }
-  if (to !== undefined) {
+  if (to != null) {
     return { to: toDate(to) };
   }
   // Every filter shape carries at least one bound, and the schema layer rejects

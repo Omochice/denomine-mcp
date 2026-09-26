@@ -39,7 +39,7 @@ export function toListIncludes(
 // The library takes a non-empty tuple, so asking for nothing has to be
 // undefined rather than [].
 function toNonEmpty<T>(values: T[] | undefined): [T, ...T[]] | undefined {
-  if (values === undefined || values.length === 0) {
+  if (values == null || values.length === 0) {
     return undefined;
   }
   const [first, ...rest] = values;

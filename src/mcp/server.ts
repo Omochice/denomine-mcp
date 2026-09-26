@@ -35,7 +35,7 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
     CallToolRequestSchema,
     (request: CallToolRequest): Promise<ToolResponse> => {
       const tool = byName.get(request.params.name);
-      if (tool === undefined) {
+      if (tool == null) {
         return Promise.resolve(
           toolError(`unknown tool: ${request.params.name}`),
         );

@@ -1,8 +1,12 @@
 import { dylibName } from "../src/keyring/ffi.ts";
 
 function tripleToOs(triple: string): typeof Deno.build.os {
-  if (triple.includes("windows")) return "windows";
-  if (triple.includes("apple")) return "darwin";
+  if (triple.includes("windows")) {
+    return "windows";
+  }
+  if (triple.includes("apple")) {
+    return "darwin";
+  }
   return "linux";
 }
 
@@ -12,8 +16,8 @@ function optionValue(args: string[], flag: string): string | undefined {
 }
 
 const target = optionValue(Deno.args, "--target");
-const os = target === undefined ? Deno.build.os : tripleToOs(target);
-const output = optionValue(Deno.args, "--output") === undefined
+const os = target == null ? Deno.build.os : tripleToOs(target);
+const output = optionValue(Deno.args, "--output") == null
   ? ["--output", "denomine-mcp"]
   : [];
 
