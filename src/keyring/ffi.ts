@@ -74,7 +74,7 @@ export class FfiKeyring implements Keyring {
       cString(SERVICE),
       cString(account),
     );
-    if (ptr === null) {
+    if (ptr == null) {
       return Promise.resolve(undefined);
     }
     const secret = new Deno.UnsafePointerView(ptr).getCString();
@@ -111,7 +111,7 @@ export class FfiKeyring implements Keyring {
 
   list(): Promise<string[]> {
     const ptr = this.#lib.symbols.keyring_list(cString(SERVICE));
-    if (ptr === null) {
+    if (ptr == null) {
       return Promise.reject(new Error("keyring_list failed"));
     }
     const raw = new Deno.UnsafePointerView(ptr).getCString();

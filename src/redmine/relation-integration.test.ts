@@ -23,7 +23,7 @@ const projectId = Number(env("DENOMINE_TEST_PROJECT_ID") ?? "1");
 Deno.test({
   name:
     "RelationClient runs relation create/read/delete against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const context = { endpoint: endpoint!, apiKey: apiKey! };

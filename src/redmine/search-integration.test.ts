@@ -22,7 +22,7 @@ const query = env("DENOMINE_TEST_SEARCH_QUERY") ?? "a";
  */
 Deno.test({
   name: "SearchClient runs a search against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async () => {
     const client = new SearchClient({ endpoint: endpoint!, apiKey: apiKey! });

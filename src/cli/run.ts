@@ -69,7 +69,7 @@ export async function resolveContext(
 ): Promise<RedmineContext> {
   const account = canonicalizeEndpoint(endpoint);
   const apiKey = await keyring.get(account);
-  if (apiKey === undefined) {
+  if (apiKey == null) {
     throw new Error(
       `no stored API key for ${account}; run \`login --endpoint ${account}\` first`,
     );

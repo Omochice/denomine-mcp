@@ -16,8 +16,8 @@ function optionValue(args: string[], flag: string): string | undefined {
 }
 
 const target = optionValue(Deno.args, "--target");
-const os = target === undefined ? Deno.build.os : tripleToOs(target);
-const output = optionValue(Deno.args, "--output") === undefined
+const os = target == null ? Deno.build.os : tripleToOs(target);
+const output = optionValue(Deno.args, "--output") == null
   ? ["--output", "denomine-mcp"]
   : [];
 

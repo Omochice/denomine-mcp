@@ -38,7 +38,7 @@ async function createVersion(
  */
 Deno.test({
   name: "RedmineClient runs issue CRUD against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   // The library does not consume every response body, which trips Deno's
   // resource sanitizer as a false positive.
   sanitizeResources: false,
@@ -110,7 +110,7 @@ Deno.test({
 Deno.test({
   name:
     "RedmineClient creates an issue inside a version against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async () => {
     const context = { endpoint: endpoint!, apiKey: apiKey! };
@@ -150,7 +150,7 @@ Deno.test({
 
 Deno.test({
   name: "RedmineClient moves an issue between versions against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const context = { endpoint: endpoint!, apiKey: apiKey! };
@@ -205,7 +205,7 @@ Deno.test({
         },
       );
     } finally {
-      if (id !== undefined) {
+      if (id != null) {
         await client.delete(id);
       }
       await versions.delete(from);
@@ -235,7 +235,7 @@ async function createIssue(
 
 Deno.test({
   name: "RedmineClient changes an issue's status against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async () => {
     const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
@@ -264,7 +264,7 @@ Deno.test({
 Deno.test({
   name:
     "RedmineClient sets an issue's start and due dates against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async () => {
     const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
@@ -290,7 +290,7 @@ Deno.test({
 Deno.test({
   name:
     "RedmineClient clears an issue's start and due dates against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async () => {
     const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
@@ -323,7 +323,7 @@ Deno.test({
 Deno.test({
   name:
     "RedmineClient creates an issue with start and due dates against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async () => {
     const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
@@ -357,7 +357,7 @@ Deno.test({
       expect(shown.dueDate.toISOString().slice(0, 10)).toBe(dueDate);
     } finally {
       const id = await findId();
-      if (id !== undefined) {
+      if (id != null) {
         await client.delete(id);
       }
     }
@@ -366,7 +366,7 @@ Deno.test({
 
 Deno.test({
   name: "RedmineClient moves an issue under a parent against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
@@ -399,7 +399,7 @@ Deno.test({
 
 Deno.test({
   name: "RedmineClient assigns and unassigns an issue against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const context = { endpoint: endpoint!, apiKey: apiKey! };
@@ -442,7 +442,7 @@ Deno.test({
 
 Deno.test({
   name: "RedmineClient files an issue under a category against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const context = { endpoint: endpoint!, apiKey: apiKey! };
@@ -481,7 +481,7 @@ Deno.test({
 Deno.test({
   name:
     "RedmineClient changes an issue's tracker and priority against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const context = { endpoint: endpoint!, apiKey: apiKey! };

@@ -286,7 +286,7 @@ Deno.test("every date filter form advertises what it means", () => {
       }
       described += 1;
       expect(
-        form.description !== undefined,
+        form.description != null,
         `${field} advertises a form with no description: ${
           JSON.stringify(form)
         }`,

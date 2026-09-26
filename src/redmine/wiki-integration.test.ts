@@ -24,7 +24,7 @@ const projectIdentifier = env("DENOMINE_TEST_PROJECT_IDENTIFIER");
  */
 Deno.test({
   name: "WikiClient runs wiki-page CRUD against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const client = new WikiClient({ endpoint: endpoint!, apiKey: apiKey! });
@@ -48,7 +48,7 @@ Deno.test({
 
     await t.step({
       name: "show resolves the page through the project identifier",
-      ignore: projectIdentifier === undefined,
+      ignore: projectIdentifier == null,
       fn: () => expectShown(projectIdentifier!),
     });
 

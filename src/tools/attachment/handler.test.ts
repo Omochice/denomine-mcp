@@ -21,7 +21,7 @@ function seeded(filesize?: number): FakeAttachmentPort {
         id: 1,
         filename: "spec.txt",
         contentType: "text/plain",
-        ...(filesize === undefined ? {} : { filesize }),
+        ...(filesize == null ? {} : { filesize }),
       },
       content: "hello",
     },

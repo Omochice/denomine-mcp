@@ -28,7 +28,7 @@ const content = "attachment integration content";
  */
 Deno.test({
   name: "AttachmentClient reads an attachment from a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const context = { endpoint: endpoint!, apiKey: apiKey! };

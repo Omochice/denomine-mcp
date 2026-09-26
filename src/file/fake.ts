@@ -28,7 +28,7 @@ export class FakeFilePort implements FilePort {
     maxSize: number,
   ): Promise<FileResult<string>> {
     const bytes = new Uint8Array(await new Response(body).arrayBuffer());
-    if (this.#failWith !== undefined) {
+    if (this.#failWith != null) {
       return Result.fail(new Error(this.#failWith));
     }
     if (bytes.byteLength > maxSize) {

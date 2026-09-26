@@ -22,7 +22,7 @@ const projectIdentifier = env("DENOMINE_TEST_PROJECT_IDENTIFIER");
  */
 Deno.test({
   name: "VersionClient runs version CRUD against a live Redmine",
-  ignore: endpoint === undefined || apiKey === undefined,
+  ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
     const client = new VersionClient({ endpoint: endpoint!, apiKey: apiKey! });
@@ -48,7 +48,7 @@ Deno.test({
 
     await t.step({
       name: "list resolves the project through its identifier",
-      ignore: projectIdentifier === undefined,
+      ignore: projectIdentifier == null,
       fn: async () => {
         const result = await client.list(projectIdentifier!);
         expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
