@@ -3,6 +3,9 @@
   "minimumDependencyAge": {
     "exclude": ["jsr:@omochice/redmine"]
   },
+  "lint": {
+    "plugins": ["./lint/eqeqeq.ts"]
+  },
   "fmt": {
     "exclude": ["CHANGELOG.md"],
     "proseWrap": "preserve",
@@ -11,7 +14,7 @@
   },
   "tasks": {
     "dev": "deno run --allow-all main.ts",
-    "test": "deno test --allow-read src/",
+    "test": "deno test --allow-read src/ lint/",
     "test:integration": "deno test --allow-read --allow-net --allow-env src/",
     "build:ffi": "cargo build --release --manifest-path ffi/Cargo.toml",
     "compile:bin": "deno run --allow-run=deno task/compile.ts",
