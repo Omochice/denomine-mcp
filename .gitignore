@@ -4,3 +4,7 @@
 
 # The `compile` task's single-binary output.
 /denomine-mcp
+
+# Third-party notices that `deno task license` generates per target and the
+# `compile` task embeds; see ADR-0013 for why they are not committed.
+/third-party-licenses.json

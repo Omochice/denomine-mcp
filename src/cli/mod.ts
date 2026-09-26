@@ -3,6 +3,7 @@ import { serveCommand } from "./serve.ts";
 import { loginCommand } from "./login.ts";
 import { logoutCommand } from "./logout.ts";
 import { listCommand } from "./list.ts";
+import { licenseCommand } from "./license.ts";
 import { VERSION } from "../version.ts";
 
 /**
@@ -24,5 +25,6 @@ export function cli() {
     .command("serve", serveCommand)
     .command("login", loginCommand)
     .command("logout", logoutCommand)
-    .command("list", listCommand);
+    .command("list", listCommand)
+    .command("license", licenseCommand);
 }
