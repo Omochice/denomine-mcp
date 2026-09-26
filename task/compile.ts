@@ -1,8 +1,12 @@
 import { dylibName } from "../src/keyring/ffi.ts";
 
 function tripleToOs(triple: string): typeof Deno.build.os {
-  if (triple.includes("windows")) return "windows";
-  if (triple.includes("apple")) return "darwin";
+  if (triple.includes("windows")) {
+    return "windows";
+  }
+  if (triple.includes("apple")) {
+    return "darwin";
+  }
   return "linux";
 }
 

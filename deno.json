@@ -5,7 +5,9 @@
   },
   "fmt": {
     "exclude": ["CHANGELOG.md"],
-    "proseWrap": "preserve"
+    "proseWrap": "preserve",
+    "useBraces": "always",
+    "singleBodyPosition": "nextLine"
   },
   "tasks": {
     "dev": "deno run --allow-all main.ts",
