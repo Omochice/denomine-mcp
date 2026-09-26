@@ -75,6 +75,14 @@ denomine-mcp serve --endpoint https://redmine.example.com
 
 Adding `--readonly` to the `serve` arguments exposes only the read actions.
 
+### `license`
+
+`license` prints the license texts of the third-party packages bundled in the binary.
+
+```sh
+denomine-mcp license
+```
+
 ## Configuring an MCP client
 
 Register `denomine-mcp serve` as a stdio server in the MCP client.
