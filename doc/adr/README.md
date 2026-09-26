@@ -15,5 +15,6 @@ This directory records the architecture decisions for the Redmine MCP server (`d
 - [ADR-0011: Design Evolution from ADR-0010](0011-design-evolution-from-0010.md)
 - [ADR-0012: Deliver attachment content as a local file](0012-attachment-content-delivered-as-a-local-file.md)
 - [ADR-0013: Embed third-party license texts in the binary and print them with `license`](0013-third-party-licenses-embedded-in-the-binary.md)
+- [ADR-0014: Bundle the compiled binary with `deno compile --bundle`](0014-bundle-the-compiled-binary.md)
 
-ADR-0001 through 0007 consolidate an earlier set of sixteen finer-grained ADRs; each record notes in its Status which of the former ADRs it carries forward. ADR-0008 through ADR-0011 record later refinements of ADR-0002, ADR-0003, ADR-0005, and ADR-0010. ADR-0012 records how attachment content is delivered, which departs from ADR-0002 for binary content. ADR-0013 records how the notices of third-party dependencies ship inside the binary.
+ADR-0001 through 0007 consolidate an earlier set of sixteen finer-grained ADRs; each record notes in its Status which of the former ADRs it carries forward. ADR-0008 through ADR-0011 record later refinements of ADR-0002, ADR-0003, ADR-0005, and ADR-0010. ADR-0012 records how attachment content is delivered, which departs from ADR-0002 for binary content. ADR-0013 records how the notices of third-party dependencies ship inside the binary. ADR-0014 records bundling the binary to drop npm code it never runs.

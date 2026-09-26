@@ -37,6 +37,7 @@ if (!licenses.success) {
 const { code } = await new Deno.Command("deno", {
   args: [
     "compile",
+    "--bundle",
     "--allow-ffi",
     "--allow-read",
     "--allow-write",
