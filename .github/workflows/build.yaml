@@ -52,6 +52,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # The checkout is on D: and the default Deno cache on C:. esbuild cannot
+      # express a path across drives, so `deno compile --bundle` sees absolute
+      # `__commonJS` keys and rewrites them into invalid code. Keeping the cache
+      # on the checkout's drive leaves those keys relative.
+      - name: Keep the Deno cache on the checkout's drive
+        if: runner.os == 'Windows'
+        run: echo "DENO_DIR=$RUNNER_TEMP/deno" >> "$GITHUB_ENV"
+
       - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
 
       - run: rustup target add ${{ matrix.target }}
