@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/Omochice/denomine-mcp/compare/v0.4.0...v0.5.0) (2026-09-26)
+
+
+### Features
+
+* print third-party license notices with `license` ([#66](https://github.com/Omochice/denomine-mcp/issues/66)) ([d03363a](https://github.com/Omochice/denomine-mcp/commit/d03363ac6a81f06a22e85d6524139b15d30da9fd))
+* set and clear an issue's start and due dates ([#63](https://github.com/Omochice/denomine-mcp/issues/63)) ([e04e09a](https://github.com/Omochice/denomine-mcp/commit/e04e09a86aa7659d52c41a65daf3619c6e939d9e))
+
 ## [0.4.0](https://github.com/Omochice/denomine-mcp/compare/v0.3.0...v0.4.0) (2026-09-22)
 
 
