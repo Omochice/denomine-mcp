@@ -1,14 +1,11 @@
 import type { Notice } from "./notice.ts";
+import { fromRoot } from "../../root.ts";
 
 /**
  * Where `task/license.ts` writes the notices and `deno compile --include`
- * embeds them. Resolved from this module, like the keyring cdylib in
- * `src/keyring/ffi.ts`, so it works both from source and inside the binary.
+ * embeds them.
  */
-export const noticesUrl: URL = new URL(
-  "../../third-party-licenses.json",
-  import.meta.url,
-);
+export const noticesUrl: URL = fromRoot("third-party-licenses.json");
 
 /**
  * Reads the generated third-party notices.

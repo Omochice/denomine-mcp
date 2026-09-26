@@ -1,4 +1,5 @@
 import type { Keyring } from "./port.ts";
+import { fromRoot } from "../../root.ts";
 
 /**
  * The application id under which every credential is stored. Fixed by the
@@ -34,25 +35,6 @@ export function dylibName(os: typeof Deno.build.os = Deno.build.os): string {
   }
 }
 
-/**
- * Locate the built `cdylib`.
- *
- * This resolves the path next to the source tree, which is the dev/test case.
- * A `deno compile` binary embeds the dylib with `--include`; resolving the
- * path from the extracted temp directory of a compiled binary is a follow-up
- * (see ADR-0003).
- *
- * The URL is handed to `Deno.dlopen` as-is rather than through `pathname`,
- * which on Windows yields a leading-slash path (`/C:/...`) that cannot be
- * opened.
- */
-function dylibUrl(): URL {
-  return new URL(
-    `../../ffi/target/release/${dylibName()}`,
-    import.meta.url,
-  );
-}
-
 /** Encode a string as a NUL-terminated C string buffer. */
 function cString(value: string): Uint8Array {
   return new TextEncoder().encode(`${value}\0`);
@@ -66,7 +48,12 @@ export class FfiKeyring implements Keyring {
   readonly #lib: Deno.DynamicLibrary<typeof SYMBOLS>;
 
   constructor() {
-    this.#lib = Deno.dlopen(dylibUrl(), SYMBOLS);
+    // The URL is passed as-is rather than through `pathname`, which on Windows
+    // yields a leading-slash path (`/C:/...`) that cannot be opened.
+    this.#lib = Deno.dlopen(
+      fromRoot(`ffi/target/release/${dylibName()}`),
+      SYMBOLS,
+    );
   }
 
   get(account: string): Promise<string | undefined> {
