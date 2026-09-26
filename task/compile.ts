@@ -21,6 +21,19 @@ const output = optionValue(Deno.args, "--output") == null
   ? ["--output", "denomine-mcp"]
   : [];
 
+const licenses = await new Deno.Command("deno", {
+  args: [
+    "task",
+    "license",
+    ...(target == null ? [] : ["--target", target]),
+  ],
+  stdout: "inherit",
+  stderr: "inherit",
+}).output();
+if (!licenses.success) {
+  Deno.exit(licenses.code);
+}
+
 const { code } = await new Deno.Command("deno", {
   args: [
     "compile",
@@ -31,6 +44,8 @@ const { code } = await new Deno.Command("deno", {
     "--allow-env",
     "--include",
     `ffi/target/release/${dylibName(os)}`,
+    "--include",
+    "third-party-licenses.json",
     ...output,
     ...Deno.args,
     "main.ts",
