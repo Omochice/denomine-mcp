@@ -28,9 +28,13 @@ export function toObjectSchema(
     oneOf?: Array<{ properties?: { action?: { const?: unknown } } }>;
   };
   const branches = json.oneOf ?? [];
-  const actions = branches
-    .map((branch) => branch.properties?.action?.const)
-    .filter((action): action is string => typeof action === "string");
+  const actions = [
+    ...new Set(
+      branches
+        .map((branch) => branch.properties?.action?.const)
+        .filter((action): action is string => typeof action === "string"),
+    ),
+  ];
   return {
     type: "object",
     properties: { action: { type: "string", enum: actions } },

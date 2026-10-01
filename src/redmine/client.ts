@@ -10,6 +10,7 @@ import type {
   IssueListQuery,
   IssuePort,
   IssueUpdate,
+  NoteUpdate,
   RedmineContext,
   RedmineResult,
 } from "./port.ts";
@@ -75,5 +76,24 @@ export class RedmineClient implements IssuePort {
       },
       catch: toRedmineError,
     });
+  }
+
+  updateNote(
+    journalId: number,
+    attrs: NoteUpdate,
+  ): Promise<RedmineResult<null>> {
+    return Result.try({
+      try: async () => {
+        await this.#redmine.journal.update(journalId, attrs);
+        return null;
+      },
+      catch: toRedmineError,
+    });
+  }
+
+  // Redmine has no route that deletes a journal; clearing its notes is how the
+  // web UI removes a comment too.
+  deleteNote(journalId: number): Promise<RedmineResult<null>> {
+    return this.updateNote(journalId, { notes: "" });
   }
 }

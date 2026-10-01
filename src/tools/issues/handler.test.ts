@@ -99,3 +99,85 @@ Deno.test("issue handler surfaces a validation failure as isError", async () => 
   const error = JSON.parse(textOf(response)) as { status: number };
   expect(error.status).toBe(422);
 });
+
+Deno.test("issue handler edits and erases a comment by its journal id", async (t) => {
+  const port = new FakeIssuePort();
+  await handleIssue(port, {
+    action: "create",
+    projectId: 1,
+    trackerId: 1,
+    statusId: 1,
+    priorityId: 2,
+    subject: "commented",
+  });
+  await handleIssue(port, { action: "update", id: 1, notes: "first draft" });
+
+  const journals = async () => {
+    const shown = await handleIssue(port, {
+      action: "show",
+      id: 1,
+      include: ["journals"],
+    });
+    return (JSON.parse(textOf(shown)) as {
+      issue: {
+        journals: { id: number; notes: string; privateNotes: boolean }[];
+      };
+    }).issue.journals;
+  };
+  const [{ id: journalId }] = await journals();
+
+  await t.step("updateNote replaces the text", async () => {
+    const response = await handleIssue(port, {
+      action: "updateNote",
+      journalId,
+      notes: "final",
+    });
+    expect(response.isError).not.toBe(true);
+    expect((await journals()).map((journal) => journal.notes)).toStrictEqual([
+      "final",
+    ]);
+  });
+
+  await t.step(
+    "updateNote with privateNotes alone keeps the text",
+    async () => {
+      const response = await handleIssue(port, {
+        action: "updateNote",
+        journalId,
+        privateNotes: true,
+      });
+      expect(response.isError).not.toBe(true);
+      expect(await journals()).toStrictEqual([
+        { id: journalId, notes: "final", privateNotes: true },
+      ]);
+    },
+  );
+
+  await t.step("deleteNote removes the comment from show", async () => {
+    const response = await handleIssue(port, {
+      action: "deleteNote",
+      journalId,
+    });
+    expect(response.isError).not.toBe(true);
+    expect(await journals()).toStrictEqual([]);
+  });
+});
+
+Deno.test("issue handler reports 404 for a comment that does not exist", async () => {
+  const port = new FakeIssuePort();
+  for (
+    const response of [
+      await handleIssue(port, {
+        action: "updateNote",
+        journalId: 999,
+        notes: "x",
+      }),
+      await handleIssue(port, { action: "deleteNote", journalId: 999 }),
+    ]
+  ) {
+    expect(response.isError).toBe(true);
+    expect((JSON.parse(textOf(response)) as { status: number }).status).toBe(
+      404,
+    );
+  }
+});

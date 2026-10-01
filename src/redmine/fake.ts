@@ -8,6 +8,7 @@ import type {
   IssueListQuery,
   IssuePort,
   IssueUpdate,
+  NoteUpdate,
   ProjectRef,
   RedmineResult,
   RelationCreate,
@@ -27,6 +28,8 @@ import type {
 
 type StoredIssue = { id: number } & Record<string, unknown>;
 
+type StoredJournal = { id: number; notes: string; privateNotes: boolean };
+
 /**
  * In-memory {@link IssuePort} for deterministic unit tests, standing in for a
  * live Redmine (ADR-0007). It models just enough behavior — id assignment,
@@ -35,8 +38,9 @@ type StoredIssue = { id: number } & Record<string, unknown>;
  */
 export class FakeIssuePort implements IssuePort {
   readonly #issues = new Map<number, StoredIssue>();
-  readonly #journals = new Map<number, { notes: string }[]>();
+  readonly #journals = new Map<number, StoredJournal[]>();
   #nextId = 1;
+  #nextJournalId = 1;
 
   list(query: IssueListQuery): Promise<RedmineResult<unknown>> {
     let issues = [...this.#issues.values()];
@@ -60,7 +64,7 @@ export class FakeIssuePort implements IssuePort {
     // Redmine leaves an association out entirely unless it was asked for, so
     // the fake does too: a caller that forgets `include` must not see journals.
     const journals = include?.includes("journals") === true
-      ? { journals: this.#journals.get(id) ?? [] }
+      ? { journals: this.#visibleJournals(id) }
       : {};
     return Promise.resolve(
       Result.succeed({ issue: { ...issue, ...journals } }),
@@ -83,9 +87,15 @@ export class FakeIssuePort implements IssuePort {
     if (issue == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
-    const { notes, ...fields } = attrs;
+    const { notes, privateNotes, ...fields } = attrs;
     if (notes != null) {
-      this.#journals.set(id, [...(this.#journals.get(id) ?? []), { notes }]);
+      const journal = {
+        id: this.#nextJournalId,
+        notes,
+        privateNotes: privateNotes ?? false,
+      };
+      this.#nextJournalId += 1;
+      this.#journals.set(id, [...(this.#journals.get(id) ?? []), journal]);
     }
     this.#issues.set(id, { ...issue, ...fields });
     return Promise.resolve(Result.succeed(null));
@@ -97,6 +107,36 @@ export class FakeIssuePort implements IssuePort {
     }
     this.#journals.delete(id);
     return Promise.resolve(Result.succeed(null));
+  }
+
+  updateNote(
+    journalId: number,
+    attrs: NoteUpdate,
+  ): Promise<RedmineResult<null>> {
+    for (const [issueId, journals] of this.#journals) {
+      if (journals.some((journal) => journal.id === journalId)) {
+        this.#journals.set(
+          issueId,
+          journals.map((journal) =>
+            journal.id === journalId ? { ...journal, ...attrs } : journal
+          ),
+        );
+        return Promise.resolve(Result.succeed(null));
+      }
+    }
+    return Promise.resolve(Result.fail(this.#notFound()));
+  }
+
+  deleteNote(journalId: number): Promise<RedmineResult<null>> {
+    return this.updateNote(journalId, { notes: "" });
+  }
+
+  // Redmine hides a journal with neither notes nor field changes, and fake
+  // journals never carry field changes.
+  #visibleJournals(issueId: number): StoredJournal[] {
+    return (this.#journals.get(issueId) ?? []).filter((journal) =>
+      journal.notes !== ""
+    );
   }
 
   #notFound(): { status: number; errors: string[] } {

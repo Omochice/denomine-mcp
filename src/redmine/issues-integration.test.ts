@@ -520,3 +520,49 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "RedmineClient edits and erases a comment against a live Redmine",
+  ignore: endpoint == null || apiKey == null,
+  sanitizeResources: false,
+  fn: async (t) => {
+    const client = new RedmineClient({ endpoint: endpoint!, apiKey: apiKey! });
+    const id = await createIssue(client, `denomine-mcp note ${Date.now()}`);
+
+    const journals = async () =>
+      (Result.unwrap(await client.show(id, ["journals"])) as {
+        journals: { id: number; notes: string; privateNotes: boolean }[];
+      }).journals;
+
+    try {
+      const added = await client.update(id, { notes: "first draft" });
+      expect(Result.isSuccess(added), JSON.stringify(added)).toBe(true);
+      const [{ id: journalId }] = await journals();
+
+      await t.step("updateNote replaces the text", async () => {
+        const updated = await client.updateNote(journalId, { notes: "final" });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        expect((await journals()).find((j) => j.id === journalId)?.notes)
+          .toBe("final");
+      });
+
+      await t.step("updateNote makes the comment private", async () => {
+        const updated = await client.updateNote(journalId, {
+          privateNotes: true,
+        });
+        expect(Result.isSuccess(updated), JSON.stringify(updated)).toBe(true);
+        const journal = (await journals()).find((j) => j.id === journalId);
+        expect(journal?.privateNotes).toBe(true);
+        expect(journal?.notes).toBe("final");
+      });
+
+      await t.step("deleteNote removes the comment from show", async () => {
+        const deleted = await client.deleteNote(journalId);
+        expect(Result.isSuccess(deleted), JSON.stringify(deleted)).toBe(true);
+        expect((await journals()).some((j) => j.id === journalId)).toBe(false);
+      });
+    } finally {
+      await client.delete(id);
+    }
+  },
+});

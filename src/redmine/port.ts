@@ -140,6 +140,12 @@ export type IssueUpdate = {
   privateNotes?: boolean;
 };
 
+/** A change to an existing comment (journal); at least one field is set. */
+export type NoteUpdate = {
+  notes?: string;
+  privateNotes?: boolean;
+};
+
 /**
  * The issue operations the tool layer depends on. The core depends only on this
  * port; the real backend binds it to `@omochice/redmine`, and a fake backs the
@@ -154,6 +160,13 @@ export type IssuePort = {
   create(attrs: IssueCreate): Promise<RedmineResult<null>>;
   update(id: number, attrs: IssueUpdate): Promise<RedmineResult<null>>;
   delete(id: number): Promise<RedmineResult<null>>;
+  /** Edits the text or visibility of the comment with this journal id. */
+  updateNote(
+    journalId: number,
+    attrs: NoteUpdate,
+  ): Promise<RedmineResult<null>>;
+  /** Erases the text of the comment with this journal id. */
+  deleteNote(journalId: number): Promise<RedmineResult<null>>;
 };
 
 /** Attributes of a wiki page; a page is identified by its project and title. */
