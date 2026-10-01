@@ -90,10 +90,11 @@ export class FakeIssuePort implements IssuePort {
     const { notes, privateNotes, ...fields } = attrs;
     if (notes != null) {
       const journal = {
-        id: this.#nextJournalId++,
+        id: this.#nextJournalId,
         notes,
         privateNotes: privateNotes ?? false,
       };
+      this.#nextJournalId += 1;
       this.#journals.set(id, [...(this.#journals.get(id) ?? []), journal]);
     }
     this.#issues.set(id, { ...issue, ...fields });
