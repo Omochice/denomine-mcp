@@ -27,6 +27,8 @@ import type {
 
 type StoredIssue = { id: number } & Record<string, unknown>;
 
+type StoredJournal = { id: number; notes: string; privateNotes: boolean };
+
 /**
  * In-memory {@link IssuePort} for deterministic unit tests, standing in for a
  * live Redmine (ADR-0007). It models just enough behavior — id assignment,
@@ -35,8 +37,9 @@ type StoredIssue = { id: number } & Record<string, unknown>;
  */
 export class FakeIssuePort implements IssuePort {
   readonly #issues = new Map<number, StoredIssue>();
-  readonly #journals = new Map<number, { notes: string }[]>();
+  readonly #journals = new Map<number, StoredJournal[]>();
   #nextId = 1;
+  #nextJournalId = 1;
 
   list(query: IssueListQuery): Promise<RedmineResult<unknown>> {
     let issues = [...this.#issues.values()];
@@ -83,9 +86,14 @@ export class FakeIssuePort implements IssuePort {
     if (issue == null) {
       return Promise.resolve(Result.fail(this.#notFound()));
     }
-    const { notes, ...fields } = attrs;
+    const { notes, privateNotes, ...fields } = attrs;
     if (notes != null) {
-      this.#journals.set(id, [...(this.#journals.get(id) ?? []), { notes }]);
+      const journal = {
+        id: this.#nextJournalId++,
+        notes,
+        privateNotes: privateNotes ?? false,
+      };
+      this.#journals.set(id, [...(this.#journals.get(id) ?? []), journal]);
     }
     this.#issues.set(id, { ...issue, ...fields });
     return Promise.resolve(Result.succeed(null));
