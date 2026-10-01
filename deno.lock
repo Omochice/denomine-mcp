@@ -22,7 +22,7 @@
     "jsr:@std/path@^1.1.6": "1.1.6",
     "jsr:@std/regexp@^1.0.2": "1.0.2",
     "jsr:@std/semver@^1.0.8": "1.0.8",
-    "jsr:@std/streams@^1.0.17": "1.1.2",
+    "jsr:@std/streams@^1.0.17": "1.2.0",
     "jsr:@std/tar@~0.1.10": "0.1.10",
     "jsr:@std/text@1.0.19": "1.0.19",
     "jsr:@std/text@^1.0.19": "1.0.19",
@@ -145,8 +145,8 @@
     "@std/semver@1.0.8": {
       "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
     },
-    "@std/streams@1.1.2": {
-      "integrity": "0249bf9b78a999f57032ca4d8e7ccaa57579090242640b35ddc948fbb745d3af"
+    "@std/streams@1.2.0": {
+      "integrity": "256b934254778f2bf45f5713b934209ff29e9b4b7fd4ec095219966813758c5f"
     },
     "@std/tar@0.1.10": {
       "integrity": "6bf907f3a4bc8bfef42973ba132d946756a6161ef6b914a9e1c06debe664db17",
@@ -168,8 +168,8 @@
     }
   },
   "npm": {
-    "@hono/node-server@2.1.1_hono@4.13.8": {
-      "integrity": "sha512-ELuehkj5VCBdgEw9zs+ivkKwyzzUCSQuE96YmiPvn1ECBoZCczbFXJLeEGMTYjphP6gydh4pHMqEYPVMYUVgQg==",
+    "@hono/node-server@2.1.3_hono@4.13.12": {
+      "integrity": "sha512-TA//nWMqPhbfdfneACk6t5a9eqbS9lABEPyKn0/xZTah3H3U2XaVg85rJFl0/Fyit0I552YDHgXGVSf3GwqbUw==",
       "dependencies": [
         "hono"
       ]
@@ -543,8 +543,8 @@
         "function-bind"
       ]
     },
-    "hono@4.13.8": {
-      "integrity": "sha512-/Gng7NfoykZl2pjukW5Z6+8Yxm3BPRf86GTbQnt0SbySkvax4fyL4H3HhY1cCpBGmiW9XDRFzRV+CXK2W8QudQ=="
+    "hono@4.13.12": {
+      "integrity": "sha512-6E2QDAc9Ick9Sq77ZrGS/dk2WUYni91aufTw6LJKpV7w8kW5/GxVUc650FOADOmlwg3K+f7Pun6XlV+pYmW6gw=="
     },
     "http-errors@2.0.1": {
       "integrity": "sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==",
