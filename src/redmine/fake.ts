@@ -8,6 +8,7 @@ import type {
   IssueListQuery,
   IssuePort,
   IssueUpdate,
+  NoteUpdate,
   ProjectRef,
   RedmineResult,
   RelationCreate,
@@ -62,8 +63,14 @@ export class FakeIssuePort implements IssuePort {
     }
     // Redmine leaves an association out entirely unless it was asked for, so
     // the fake does too: a caller that forgets `include` must not see journals.
+    // Redmine also hides a journal with neither notes nor field changes, and
+    // fake journals never carry field changes.
     const journals = include?.includes("journals") === true
-      ? { journals: this.#journals.get(id) ?? [] }
+      ? {
+        journals: (this.#journals.get(id) ?? []).filter((journal) =>
+          journal.notes !== ""
+        ),
+      }
       : {};
     return Promise.resolve(
       Result.succeed({ issue: { ...issue, ...journals } }),
@@ -105,6 +112,28 @@ export class FakeIssuePort implements IssuePort {
     }
     this.#journals.delete(id);
     return Promise.resolve(Result.succeed(null));
+  }
+
+  updateNote(
+    journalId: number,
+    attrs: NoteUpdate,
+  ): Promise<RedmineResult<null>> {
+    for (const [issueId, journals] of this.#journals) {
+      if (journals.some((journal) => journal.id === journalId)) {
+        this.#journals.set(
+          issueId,
+          journals.map((journal) =>
+            journal.id === journalId ? { ...journal, ...attrs } : journal
+          ),
+        );
+        return Promise.resolve(Result.succeed(null));
+      }
+    }
+    return Promise.resolve(Result.fail(this.#notFound()));
+  }
+
+  deleteNote(journalId: number): Promise<RedmineResult<null>> {
+    return this.updateNote(journalId, { notes: "" });
   }
 
   #notFound(): { status: number; errors: string[] } {

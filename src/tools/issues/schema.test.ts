@@ -322,3 +322,49 @@ Deno.test("statusId advertises that a forbidden transition is ignored and where 
   expect(description).toContain("ignore");
   expect(description).toContain("allowedStatuses");
 });
+
+Deno.test("readonly omits the comment-editing actions", () => {
+  for (
+    const input of [
+      { action: "updateNote", journalId: 1, notes: "edited" },
+      { action: "deleteNote", journalId: 1 },
+    ]
+  ) {
+    expect(v.safeParse(issueInputSchema("readonly"), input).success).toBe(
+      false,
+    );
+    expect(v.safeParse(issueInputSchema("full"), input).success).toBe(true);
+  }
+});
+
+Deno.test("updateNote rejects empty notes, which would erase the comment", () => {
+  expect(
+    v.safeParse(issueInputSchema("full"), {
+      action: "updateNote",
+      journalId: 1,
+      notes: "",
+    }).success,
+  ).toBe(false);
+});
+
+Deno.test("updateNote rejects a call that changes neither notes nor privateNotes", () => {
+  expect(
+    v.safeParse(issueInputSchema("full"), {
+      action: "updateNote",
+      journalId: 1,
+    }).success,
+  ).toBe(false);
+});
+
+Deno.test("updateNote accepts privateNotes alone so a comment can be hidden without retyping it", () => {
+  const input = { action: "updateNote", journalId: 1, privateNotes: true };
+  expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
+});
+
+Deno.test("updateNote is advertised once in the action enum although it has two branches", () => {
+  const actions = toObjectSchema(issueInputSchema("full")).properties
+    .action as { enum: string[] };
+  expect(actions.enum.filter((action) => action === "updateNote")).toHaveLength(
+    1,
+  );
+});

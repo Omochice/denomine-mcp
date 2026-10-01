@@ -34,5 +34,11 @@ function dispatch(
     }
     case "delete":
       return port.delete(input.id);
+    case "updateNote": {
+      const { action: _action, journalId, ...attrs } = input;
+      return port.updateNote(journalId, attrs);
+    }
+    case "deleteNote":
+      return port.deleteNote(input.journalId);
   }
 }

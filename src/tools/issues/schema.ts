@@ -209,13 +209,48 @@ export const deleteInput = v.object({
   id: v.number(),
 });
 
+const journalId = describe(
+  v.number(),
+  'Id of the comment (journal), as listed by `show` with `include: ["journals"]`.',
+);
+
+const editedNote = describe(
+  v.pipe(v.string(), v.minLength(1)),
+  "New text of the comment. To erase it, use `deleteNote`.",
+);
+
+// "At least one of notes and privateNotes" is spelled as two branches because
+// to-json-schema cannot convert a v.check. The second forbids `notes` so the
+// advertised oneOf branches stay disjoint.
+export const updateNoteTextInput = v.object({
+  action: v.literal("updateNote"),
+  journalId,
+  notes: editedNote,
+  privateNotes: v.optional(v.boolean()),
+});
+
+export const updateNoteVisibilityInput = v.object({
+  action: v.literal("updateNote"),
+  journalId,
+  notes: v.optional(v.never()),
+  privateNotes: v.boolean(),
+});
+
+export const deleteNoteInput = v.object({
+  action: v.literal("deleteNote"),
+  journalId,
+});
+
 /** Every issue-tool argument shape, discriminated by `action`. */
 export type IssueToolInput =
   | v.InferOutput<typeof listInput>
   | v.InferOutput<typeof showInput>
   | v.InferOutput<typeof createInput>
   | v.InferOutput<typeof updateInput>
-  | v.InferOutput<typeof deleteInput>;
+  | v.InferOutput<typeof deleteInput>
+  | v.InferOutput<typeof updateNoteTextInput>
+  | v.InferOutput<typeof updateNoteVisibilityInput>
+  | v.InferOutput<typeof deleteNoteInput>;
 
 /**
  * Builds the issue-tool argument schema for the given mode.
@@ -225,7 +260,14 @@ export type IssueToolInput =
  */
 export function issueInputSchema(mode: Mode) {
   const read = [listInput, showInput] as const;
-  const write = [createInput, updateInput, deleteInput] as const;
+  const write = [
+    createInput,
+    updateInput,
+    deleteInput,
+    updateNoteTextInput,
+    updateNoteVisibilityInput,
+    deleteNoteInput,
+  ] as const;
   return mode === "readonly"
     ? v.variant("action", [...read])
     : v.variant("action", [...read, ...write]);
