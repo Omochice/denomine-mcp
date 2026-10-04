@@ -18,6 +18,7 @@ import { searchTool } from "../tools/search/mod.ts";
 import { timeEntryTool } from "../tools/time-entry/mod.ts";
 import { enumerationTool } from "../tools/enumeration/mod.ts";
 import { attachmentTool } from "../tools/attachment/mod.ts";
+import type { ToolModule } from "../mcp/tool.ts";
 import type { Mode } from "../tools/mode.ts";
 import type { Keyring } from "../keyring/port.ts";
 import { canonicalizeEndpoint } from "./endpoint.ts";
@@ -77,6 +78,20 @@ export async function resolveContext(
   return { endpoint: account, apiKey };
 }
 
+/** Every tool the server exposes, bound to the Redmine endpoint and the local filesystem. */
+export function registeredTools(context: RedmineContext): ToolModule[] {
+  return [
+    issuesTool(new RedmineClient(context)),
+    wikiTool(new WikiClient(context)),
+    versionTool(new VersionClient(context)),
+    relationTool(new RelationClient(context)),
+    searchTool(new SearchClient(context)),
+    timeEntryTool(new TimeEntryClient(context)),
+    enumerationTool(new EnumerationClient(context)),
+    attachmentTool(new AttachmentClient(context), new LocalFile()),
+  ];
+}
+
 /** Runs the stdio MCP server for an endpoint, keyed by the stored API key. */
 export async function runServe(
   options: { endpoint: string; readonly?: boolean },
@@ -84,18 +99,6 @@ export async function runServe(
 ): Promise<void> {
   const context = await resolveContext(options.endpoint, keyring);
   const mode: Mode = options.readonly ? "readonly" : "full";
-  const server = buildServer(
-    [
-      issuesTool(new RedmineClient(context)),
-      wikiTool(new WikiClient(context)),
-      versionTool(new VersionClient(context)),
-      relationTool(new RelationClient(context)),
-      searchTool(new SearchClient(context)),
-      timeEntryTool(new TimeEntryClient(context)),
-      enumerationTool(new EnumerationClient(context)),
-      attachmentTool(new AttachmentClient(context), new LocalFile()),
-    ],
-    mode,
-  );
+  const server = buildServer(registeredTools(context), mode);
   await server.connect(new StdioServerTransport());
 }
