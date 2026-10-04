@@ -18,7 +18,7 @@ export function searchTool(port: SearchPort): ToolModule {
       dedent`
         Full-text search across Redmine issues, wiki pages, news, documents, changesets, messages, and projects.
         Requires \`q\`; narrow with \`scope\` and the per-resource flags.
-        Set \`action\` to \`search\`.
+        Pass the arguments under the single key \`search\`: \`{"search": {"q": "login"}}\`.
       `,
     schema: (mode) => searchInputSchema(mode),
     handle: (input) => handleSearch(port, input as SearchToolInput),

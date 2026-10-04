@@ -11,7 +11,7 @@ export function enumerationTool(port: EnumerationPort): ToolModule {
     description: () =>
       dedent`
         Lists the Redmine enumerations that supply ids other tools require: time entry activities for \`activityId\`, issue priorities for \`priorityId\`, and document categories.
-        Choose the listing with \`action\`.
+        Name the listing as the only key, with an empty object as its value: \`{"listIssuePriorities": {}}\`.
       `,
     schema: (mode) => enumerationInputSchema(mode),
     handle: (input) => handleEnumeration(port, input as EnumerationToolInput),

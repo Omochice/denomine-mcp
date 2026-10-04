@@ -24,7 +24,8 @@ export type SearchToolInput = v.InferOutput<typeof searchInput>;
 /**
  * Builds the search-tool argument schema. Search is read-only, so the schema is
  * the same in both modes; it is still wrapped in a single-branch `action`
- * variant so it advertises an `action` enum like every other tool (ADR-0001).
+ * variant so it is advertised keyed by its action like every other tool
+ * (ADR-0001).
  */
 export function searchInputSchema(_mode: Mode) {
   return v.variant("action", [searchInput]);

@@ -1,5 +1,6 @@
 import * as v from "@valibot/valibot";
 import { toJsonSchema } from "@valibot/to-json-schema";
+import { Result } from "@praha/byethrow";
 import type { Mode } from "../tools/mode.ts";
 import type { ToolResponse } from "../tools/response.ts";
 
@@ -15,29 +16,106 @@ export type ToolModule = {
   handle(input: unknown): Promise<ToolResponse>;
 };
 
+type JsonObjectSchema = {
+  properties?: Record<string, unknown>;
+  required?: string[];
+  [keyword: string]: unknown;
+};
+
+type ActionBranch = JsonObjectSchema & {
+  properties?: { action?: { const?: unknown } };
+};
+
 /**
- * Wraps a resource's discriminated-union schema, which `toJsonSchema` emits as a
- * top-level `oneOf`, into the `type: "object"` schema MCP's `inputSchema`
- * requires. The advertised `action` enum is read back from the branches so it
- * cannot drift from the schema.
+ * The MCP `inputSchema` of a tool: one property per action, holding that
+ * action's own arguments, of which a call sets exactly one.
  */
-export function toObjectSchema(
-  schema: v.GenericSchema,
-): { type: "object"; properties: Record<string, unknown>; oneOf: unknown[] } {
-  const json = toJsonSchema(schema) as {
-    oneOf?: Array<{ properties?: { action?: { const?: unknown } } }>;
-  };
-  const branches = json.oneOf ?? [];
-  const actions = [
-    ...new Set(
-      branches
-        .map((branch) => branch.properties?.action?.const)
-        .filter((action): action is string => typeof action === "string"),
-    ),
-  ];
+export type ActionKeyedSchema = {
+  type: "object";
+  properties: Record<string, unknown>;
+  minProperties: 1;
+  maxProperties: 1;
+  additionalProperties: false;
+};
+
+/**
+ * Re-keys a resource's discriminated-union schema by its `action` literal. The
+ * Anthropic Messages API rejects an `inputSchema` with `oneOf`, `anyOf`, or
+ * `allOf` at the top level, which is how `toJsonSchema` emits a variant;
+ * keying by action keeps each action's required fields expressible without
+ * that. An action spread over several branches is advertised as their
+ * `anyOf`, which the API accepts below the top level.
+ */
+export function toObjectSchema(schema: v.GenericSchema): ActionKeyedSchema {
+  const json = toJsonSchema(schema) as { oneOf?: ActionBranch[] };
+  const byAction = new Map<string, JsonObjectSchema[]>();
+  for (const branch of json.oneOf ?? []) {
+    const action = branch.properties?.action?.const;
+    if (typeof action !== "string") {
+      continue;
+    }
+    byAction.set(action, [
+      ...byAction.get(action) ?? [],
+      withoutAction(branch),
+    ]);
+  }
   return {
     type: "object",
-    properties: { action: { type: "string", enum: actions } },
-    oneOf: branches,
+    properties: Object.fromEntries(
+      [...byAction].map(([action, branches]) => [action, merge(branches)]),
+    ),
+    minProperties: 1,
+    maxProperties: 1,
+    additionalProperties: false,
   };
+}
+
+function withoutAction(branch: ActionBranch): JsonObjectSchema {
+  const { properties, required, ...rest } = branch;
+  const { action: _action, ...fields } = properties ?? {};
+  const remaining = (required ?? []).filter((name) => name !== "action");
+  if (remaining.length === 0) {
+    return { ...rest, properties: fields };
+  }
+  return { ...rest, properties: fields, required: remaining };
+}
+
+function merge(branches: JsonObjectSchema[]): JsonObjectSchema {
+  if (branches.length === 1) {
+    return branches[0];
+  }
+  return { anyOf: branches };
+}
+
+/**
+ * Turns call arguments in the advertised `{ <action>: { ...fields } }` shape
+ * back into the `{ action, ...fields }` input the tool's schema validates.
+ *
+ * @param actions The advertised action names, quoted when the shape is wrong.
+ * @returns The tagged input, or a message saying why the shape is wrong.
+ */
+export function fromActionKeyed(
+  input: unknown,
+  actions: readonly string[],
+): Result.Result<Record<string, unknown>, string> {
+  const keys = isPlainObject(input) ? Object.keys(input) : [];
+  if (!isPlainObject(input) || keys.length !== 1) {
+    return Result.fail(
+      `expected an object with exactly one key naming the action, one of: ${
+        actions.join(", ")
+      }`,
+    );
+  }
+  const action = keys[0];
+  const fields = input[action];
+  if (!isPlainObject(fields)) {
+    return Result.fail(
+      `the arguments of \`${action}\` must be an object of its fields`,
+    );
+  }
+  return Result.succeed({ ...fields, action });
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value != null && !Array.isArray(value);
 }

@@ -1,6 +1,7 @@
 import type { RelationPort } from "../../redmine/port.ts";
 import type { Mode } from "../mode.ts";
 import type { ToolModule } from "../../mcp/tool.ts";
+import { operationKeyHint } from "../describe.ts";
 import { handleRelation } from "./handler.ts";
 import { relationInputSchema, type RelationToolInput } from "./schema.ts";
 
@@ -13,7 +14,7 @@ function describe(mode: Mode): string {
   const summary = mode === "readonly"
     ? "List and show Redmine issue relations"
     : "Create, read, and delete Redmine issue relations";
-  return `${summary}. Choose the operation with \`action\`.`;
+  return `${summary}. ${operationKeyHint}`;
 }
 
 /**
