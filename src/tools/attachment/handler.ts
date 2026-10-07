@@ -79,8 +79,6 @@ async function attach(
     ...(input.notes == null ? {} : { notes: input.notes }),
   });
   if (Result.isFailure(attached)) {
-    // A request that failed before reading the stream leaves the file open.
-    await body.cancel().catch(() => {});
     return toToolResponse(attached);
   }
   return toToolResponse(

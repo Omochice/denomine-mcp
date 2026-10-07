@@ -364,7 +364,10 @@ export type IssueAttachment = {
 export type AttachmentPort = {
   show(id: number): Promise<RedmineResult<unknown>>;
   download(id: number): Promise<RedmineResult<AttachmentContent>>;
-  /** Adds the content to the issue as a new attachment. */
+  /**
+   * Adds the content to the issue as a new attachment. The stream is released
+   * whether or not the attach succeeds.
+   */
   attach(
     issueId: number,
     body: ReadableStream<Uint8Array>,

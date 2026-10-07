@@ -43,12 +43,12 @@ export class AttachmentClient implements AttachmentPort {
    * and attached to nothing; it is not removed, because the library's upload
    * returns only the token, not an attachment id to delete it by.
    */
-  attach(
+  async attach(
     issueId: number,
     body: ReadableStream<Uint8Array>,
     { filename, description, notes }: IssueAttachment,
   ): Promise<RedmineResult<null>> {
-    return Result.try({
+    const attached = await Result.try({
       try: async () => {
         const token = await this.#redmine.file.upload(body, filename);
         await this.#redmine.issue.update(issueId, {
@@ -63,5 +63,10 @@ export class AttachmentClient implements AttachmentPort {
       },
       catch: toRedmineError,
     });
+    if (Result.isFailure(attached)) {
+      // A request that failed before reading the stream leaves the file open.
+      await body.cancel().catch(() => {});
+    }
+    return attached;
   }
 }
