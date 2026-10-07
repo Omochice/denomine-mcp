@@ -8,3 +8,7 @@
 # Third-party notices that `deno task license` generates per target and the
 # `compile` task embeds; see ADR-0013 for why they are not committed.
 /third-party-licenses.json
+
+# The commit the `compile` task writes for the binary to embed and removes once
+# it is built, kept out in case a build is interrupted before the removal.
+/build-info.json
