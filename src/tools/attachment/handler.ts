@@ -7,6 +7,10 @@ import type { AttachmentToolInput } from "./schema.ts";
 type DownloadInput = Extract<AttachmentToolInput, { action: "download" }>;
 type AttachInput = Extract<AttachmentToolInput, { action: "attach" }>;
 
+function localFailure(message: string): ToolResponse {
+  return toToolResponse(Result.fail({ status: 0, errors: [message] }));
+}
+
 /**
  * Runs one attachment-tool call and maps the outcome to an MCP response
  * (ADR-0002). A download or an attach crosses two boundaries — Redmine and the
@@ -45,19 +49,14 @@ async function download(
   const { body, ...metadata } = downloaded.value;
   if (metadata.filesize > input.maxSize) {
     await body.cancel().catch(() => {});
-    return toToolResponse(Result.fail({
-      status: 0,
-      errors: [
-        `attachment ${input.id} is ${metadata.filesize} bytes, which exceeds the maxSize limit of ${input.maxSize} bytes`,
-      ],
-    }));
+    return localFailure(
+      `attachment ${input.id} is ${metadata.filesize} bytes, which exceeds the maxSize limit of ${input.maxSize} bytes`,
+    );
   }
 
   const saved = await files.save(input.path, body, input.maxSize);
   if (Result.isFailure(saved)) {
-    return toToolResponse(
-      Result.fail({ status: 0, errors: [saved.error.message] }),
-    );
+    return localFailure(saved.error.message);
   }
   return toToolResponse(Result.succeed({ path: saved.value, ...metadata }));
 }
@@ -69,9 +68,7 @@ async function attach(
 ): Promise<ToolResponse> {
   const opened = await files.open(input.path);
   if (Result.isFailure(opened)) {
-    return toToolResponse(
-      Result.fail({ status: 0, errors: [opened.error.message] }),
-    );
+    return localFailure(opened.error.message);
   }
 
   const { body, size } = opened.value;
