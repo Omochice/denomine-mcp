@@ -1,5 +1,76 @@
 # Changelog
 
+## [0.1.1](https://github.com/Omochice/denomine-mcp/compare/v1.1.0...v0.1.1) (2026-10-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* tool calls pass the action as the single top-level key, e.g. `{"show": {"id": 1}}`, instead of `{"action": "show", "id": 1}`. The old shape is rejected as invalid arguments.
+
+### Features
+
+* accept a project identifier from wiki URLs in the wiki tool ([#36](https://github.com/Omochice/denomine-mcp/issues/36)) ([8b2af9f](https://github.com/Omochice/denomine-mcp/commit/8b2af9f973f67f216ab83ffa00c4a2205d62f3b2))
+* add list to the keyring port ([187ee21](https://github.com/Omochice/denomine-mcp/commit/187ee21a1fc1a66c4cf5375bb89d2751ce7dc309))
+* add the issue tool schema and handler ([bd81163](https://github.com/Omochice/denomine-mcp/commit/bd81163ea096a2e1694579351cda2ab213f8b9de))
+* add the issue-relation tool schema and handler ([b5f0606](https://github.com/Omochice/denomine-mcp/commit/b5f06064d138285ba11d50e4551261518434086a))
+* add the MCP server exposing the issue tool ([b98272b](https://github.com/Omochice/denomine-mcp/commit/b98272b16201398b45d284764bf3ef69fe3f0c51))
+* add the OS-keyring credential store over FFI ([8735008](https://github.com/Omochice/denomine-mcp/commit/87350086c7ce6ed78c1fe00086c1d02594af2634))
+* add the Redmine issue client behind a port ([dab3231](https://github.com/Omochice/denomine-mcp/commit/dab32311d742402810628bbd67629141be2721fb))
+* add the Redmine issue-relation client behind a port ([4411802](https://github.com/Omochice/denomine-mcp/commit/4411802c56b1a191701dfa3705e43197e3597643))
+* add the Redmine search port backed by @omochice/redmine ([93aeb1e](https://github.com/Omochice/denomine-mcp/commit/93aeb1e10a6911fbb36acc2de5c3e74120ef53cc))
+* add the Redmine version client behind a port ([1424bb6](https://github.com/Omochice/denomine-mcp/commit/1424bb6d4d29c4b8a5e0517767a93b10cb8a5288))
+* add the Redmine wiki client behind a port ([9d0afbe](https://github.com/Omochice/denomine-mcp/commit/9d0afbeaaedb36566962a21d949a9677a9113641))
+* add the version tool schema and handler ([e28c5e7](https://github.com/Omochice/denomine-mcp/commit/e28c5e75c2b0bd627d82a3c1b85253cff4428879))
+* add the wiki tool schema and handler ([0a00912](https://github.com/Omochice/denomine-mcp/commit/0a00912231172cb010e10b1725252d9757e8fd27))
+* attach local files to Redmine issues ([#96](https://github.com/Omochice/denomine-mcp/issues/96)) ([c046562](https://github.com/Omochice/denomine-mcp/commit/c04656213fd9f0eb731948d83494e3243bc45ded))
+* canonicalize the endpoint URL for instance identity ([66c6eae](https://github.com/Omochice/denomine-mcp/commit/66c6eae7b055b30c0aaa0a077a567a4a665bbc2e))
+* change an issue's status, assignee, and other fields on update ([#59](https://github.com/Omochice/denomine-mcp/issues/59)) ([0975fee](https://github.com/Omochice/denomine-mcp/commit/0975fee18e5ac13ab2af0ff99e08ce09951c76a5))
+* describe `include` and journals in the issue tool ([#27](https://github.com/Omochice/denomine-mcp/issues/27)) ([88d6427](https://github.com/Omochice/denomine-mcp/commit/88d6427e824e392054398ba7f9ebb2c91ca1a587))
+* download Redmine attachments to a local file ([#54](https://github.com/Omochice/denomine-mcp/issues/54)) ([e3e291f](https://github.com/Omochice/denomine-mcp/commit/e3e291ff57505a6c812422aeb5109407492b52bc))
+* drop write verbs from tool descriptions in readonly mode ([d830b51](https://github.com/Omochice/denomine-mcp/commit/d830b51550071d29993e331a3dc927cd13f430c6))
+* edit and erase existing issue comments ([#75](https://github.com/Omochice/denomine-mcp/issues/75)) ([bd8c3be](https://github.com/Omochice/denomine-mcp/commit/bd8c3be80220977006b0301515f2860d472176f5))
+* enumerate keychain accounts in the cdylib ([715379e](https://github.com/Omochice/denomine-mcp/commit/715379e100ea47804d217710e09ffeb1c5d33eaa))
+* expose the issue-relation tool from serve ([13958c4](https://github.com/Omochice/denomine-mcp/commit/13958c4b7be28eebfb1baf3e5961a64602ef1edc))
+* expose the Redmine search tool over MCP ([c6105a8](https://github.com/Omochice/denomine-mcp/commit/c6105a844f4711a40f4ecc8269342ebca02d51ff))
+* expose the version tool from serve ([f12f60e](https://github.com/Omochice/denomine-mcp/commit/f12f60eec3413ec79fb86e272a9df2d66c2a11c1))
+* expose the wiki tool from serve ([3daba08](https://github.com/Omochice/denomine-mcp/commit/3daba0860b43bcf55ec0da2e7ecb3cff90bfd392))
+* fetch attachments and relations with the issue list ([d0efdb5](https://github.com/Omochice/denomine-mcp/commit/d0efdb5562cc4a7a9186954f4258a1dd3c07c80d))
+* **ffi:** enumerate credentials through the keyring stores ([f801dba](https://github.com/Omochice/denomine-mcp/commit/f801dba7ce506a95960bb568fc828aca5c40644c))
+* **ffi:** report an unavailable credential store distinctly ([dfeba29](https://github.com/Omochice/denomine-mcp/commit/dfeba29b5f43482798998624c85cb1b233b7374d))
+* filter the issue list by date ([1a7af4b](https://github.com/Omochice/denomine-mcp/commit/1a7af4b623a2e29217e5963ff046d769af4e3600))
+* filter the issue list by fixed version ([e2ba9c0](https://github.com/Omochice/denomine-mcp/commit/e2ba9c03aa7cbc52abc708ffccb46e0bb857f730))
+* implement the list subcommand ([b8a80a2](https://github.com/Omochice/denomine-mcp/commit/b8a80a220f8c432226efb83808b54d02c035cf9d))
+* initialize ([c41b171](https://github.com/Omochice/denomine-mcp/commit/c41b1710315c702823b63abc22e33199119d9374))
+* key tool arguments by action so Claude Desktop accepts them ([#84](https://github.com/Omochice/denomine-mcp/issues/84)) ([c1ffe79](https://github.com/Omochice/denomine-mcp/commit/c1ffe79a562318a9a2886377eae3bd78f6d721ad))
+* let the model report the server version and build commit ([#94](https://github.com/Omochice/denomine-mcp/issues/94)) ([a464e25](https://github.com/Omochice/denomine-mcp/commit/a464e25b1a3d9e6bda962a0354880d1f78173b21))
+* name each date filter form in the advertised schema ([3d8327a](https://github.com/Omochice/denomine-mcp/commit/3d8327adecc7d9475960a52baf2b1cb33ca049e3))
+* plan issues into versions and move them between versions ([#57](https://github.com/Omochice/denomine-mcp/issues/57)) ([097d38e](https://github.com/Omochice/denomine-mcp/commit/097d38ecb2e46309f84c7ad903cfcd34b6f9dc35))
+* print third-party license notices with `license` ([#66](https://github.com/Omochice/denomine-mcp/issues/66)) ([d03363a](https://github.com/Omochice/denomine-mcp/commit/d03363ac6a81f06a22e85d6524139b15d30da9fd))
+* read an issue's journals and other associations with show ([194c58a](https://github.com/Omochice/denomine-mcp/commit/194c58a29e702f87821afa9fb70a895c12af131d))
+* scaffold the CLI with stubbed serve/login/logout/list subcommands ([8d8755b](https://github.com/Omochice/denomine-mcp/commit/8d8755b5061dee0cb99e0fb82cb80512f80d2b20))
+* set and clear an issue's start and due dates ([#63](https://github.com/Omochice/denomine-mcp/issues/63)) ([e04e09a](https://github.com/Omochice/denomine-mcp/commit/e04e09a86aa7659d52c41a65daf3619c6e939d9e))
+* track spent time and look up the enumeration ids it needs ([#39](https://github.com/Omochice/denomine-mcp/issues/39)) ([3ec7ceb](https://github.com/Omochice/denomine-mcp/commit/3ec7cebecad52ddd3b42c44de0b5e33a80a7f157))
+* wire serve, login, and logout to the keyring and Redmine ([61144f7](https://github.com/Omochice/denomine-mcp/commit/61144f7c333da6bf6da039930301ce8c1e1a3bbd))
+
+
+### Bug Fixes
+
+* adapt version dueDate to the library's Date type ([8f28425](https://github.com/Omochice/denomine-mcp/commit/8f28425eb6966cb0a04ffcb10e60e01c06f25d69))
+* list the available tools when a tool name is unknown ([#89](https://github.com/Omochice/denomine-mcp/issues/89)) ([43b457f](https://github.com/Omochice/denomine-mcp/commit/43b457fbc9e2057b5d52863c63b6bf64ee325e99))
+* name an unknown action in the argument error ([#88](https://github.com/Omochice/denomine-mcp/issues/88)) ([7a140a1](https://github.com/Omochice/denomine-mcp/commit/7a140a14951786353cccf60a8bd0969b40867c67))
+* name the nested fields of a union argument that failed ([#90](https://github.com/Omochice/denomine-mcp/issues/90)) ([5d7da5b](https://github.com/Omochice/denomine-mcp/commit/5d7da5b7b697b9e9df9a4e7a467d07d08a21e308))
+* name the offending field in argument validation errors ([#86](https://github.com/Omochice/denomine-mcp/issues/86)) ([ef2162a](https://github.com/Omochice/denomine-mcp/commit/ef2162a79d68a15b58b8c1096922ac12719109e9))
+* refuse a date the calendar does not have ([390fa5d](https://github.com/Omochice/denomine-mcp/commit/390fa5d2720ca46ee6ca3aa2ce93ce07b23e058d))
+* reject unknown fields in tool arguments ([#87](https://github.com/Omochice/denomine-mcp/issues/87)) ([f7ddd5f](https://github.com/Omochice/denomine-mcp/commit/f7ddd5fe9185e38c22074697f3b2f31c677ccd05))
+* report argument errors as the status-and-errors JSON ([#85](https://github.com/Omochice/denomine-mcp/issues/85)) ([4f04bce](https://github.com/Omochice/denomine-mcp/commit/4f04bceabb47315d3378c5818deeb3fd7de8b4e7))
+* report the released version in the MCP server info ([#50](https://github.com/Omochice/denomine-mcp/issues/50)) ([d4c0e30](https://github.com/Omochice/denomine-mcp/commit/d4c0e30df70d8d3cc2d59d624b5637acbff1edb0))
+* require record ids to be positive integers ([#91](https://github.com/Omochice/denomine-mcp/issues/91)) ([6ed253e](https://github.com/Omochice/denomine-mcp/commit/6ed253ed4f1961529f9c7d2cc8f34f73b5fa86db))
+
+
+### Continuous Integration
+
+* draft the release before attaching binaries ([#5](https://github.com/Omochice/denomine-mcp/issues/5)) ([43c57f4](https://github.com/Omochice/denomine-mcp/commit/43c57f455e4a2659d4e32a73703fbf3b5fceeb2d))
+
 ## [1.1.0](https://github.com/Omochice/denomine-mcp/compare/v1.0.0...v1.1.0) (2026-10-07)
 
 
