@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Omochice/denomine-mcp/compare/v1.0.0...v1.1.0) (2026-10-07)
+
+
+### Features
+
+* attach local files to Redmine issues ([#96](https://github.com/Omochice/denomine-mcp/issues/96)) ([c046562](https://github.com/Omochice/denomine-mcp/commit/c04656213fd9f0eb731948d83494e3243bc45ded))
+
 ## [1.0.0](https://github.com/Omochice/denomine-mcp/compare/v0.6.0...v1.0.0) (2026-10-07)
 
 
