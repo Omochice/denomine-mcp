@@ -118,3 +118,88 @@ Deno.test("attachment handler reports a failed save as a tool error", async () =
     errors: ["file already exists"],
   });
 });
+
+Deno.test("attachment handler attaches a local file to the issue", async () => {
+  const port = new FakeAttachmentPort();
+  const files = new FakeFilePort({ files: { "/tmp/log.txt": "hello" } });
+  const response = await handleAttachment(port, files, {
+    action: "attach",
+    path: "/tmp/log.txt",
+    issueId: 42,
+    description: "server log",
+    notes: "attached the log",
+  });
+  expect(response.isError).not.toBe(true);
+  expect(JSON.parse(textOf(response))).toStrictEqual({
+    issueId: 42,
+    filename: "log.txt",
+    filesize: 5,
+  });
+  expect(port.attached).toStrictEqual([{
+    issueId: 42,
+    filename: "log.txt",
+    description: "server log",
+    notes: "attached the log",
+    content: "hello",
+  }]);
+});
+
+Deno.test("attachment handler attaches the file under the filename it was given", async () => {
+  const port = new FakeAttachmentPort();
+  const files = new FakeFilePort({ files: { "/tmp/log.txt": "hello" } });
+  const response = await handleAttachment(port, files, {
+    action: "attach",
+    path: "/tmp/log.txt",
+    issueId: 42,
+    filename: "server.log",
+  });
+  expect(response.isError).not.toBe(true);
+  expect(port.attached).toStrictEqual([
+    { issueId: 42, filename: "server.log", content: "hello" },
+  ]);
+});
+
+Deno.test("attachment handler reports an unreadable file without contacting Redmine", async () => {
+  const port = new FakeAttachmentPort();
+  const response = await handleAttachment(port, new FakeFilePort(), {
+    action: "attach",
+    path: "/tmp/missing.txt",
+    issueId: 42,
+  });
+  expect(response.isError).toBe(true);
+  expect(failureOf(response).status).toBe(0);
+  expect(port.attached).toStrictEqual([]);
+});
+
+Deno.test("attachment handler reports a failed attach as Redmine answered it", async () => {
+  const port = new FakeAttachmentPort({}, {
+    attachFailsWith: { status: 404, errors: [] },
+  });
+  const files = new FakeFilePort({ files: { "/tmp/log.txt": "hello" } });
+  const response = await handleAttachment(port, files, {
+    action: "attach",
+    path: "/tmp/log.txt",
+    issueId: 9,
+  });
+  expect(response.isError).toBe(true);
+  expect(failureOf(response)).toStrictEqual({ status: 404, errors: [] });
+});
+
+Deno.test("attachment handler releases the local file whether or not the attach succeeds", async () => {
+  for (
+    const port of [
+      new FakeAttachmentPort(),
+      new FakeAttachmentPort({}, {
+        attachFailsWith: { status: 422, errors: [] },
+      }),
+    ]
+  ) {
+    const files = new FakeFilePort({ files: { "/tmp/log.txt": "hello" } });
+    await handleAttachment(port, files, {
+      action: "attach",
+      path: "/tmp/log.txt",
+      issueId: 42,
+    });
+    expect(files.released).toStrictEqual(["/tmp/log.txt"]);
+  }
+});

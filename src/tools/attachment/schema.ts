@@ -2,9 +2,10 @@ import * as v from "@valibot/valibot";
 import { recordId } from "../record-id.ts";
 import type { Mode } from "../mode.ts";
 
+const notBlank = v.pipe(v.string(), v.regex(/\S/, "must not be blank"));
+
 const path = v.pipe(
-  v.string(),
-  v.regex(/\S/, "must not be blank"),
+  notBlank,
   v.description(
     "Destination file path for the saved content. An absolute path is recommended, because a relative one resolves against the working directory of the server process. The file must not already exist.",
   ),
@@ -37,16 +38,49 @@ export const downloadInput = v.strictObject({
   maxSize,
 });
 
+export const attachInput = v.strictObject({
+  action: v.literal("attach"),
+  path: v.pipe(
+    notBlank,
+    v.description(
+      "Local file to attach. An absolute path is recommended, because a relative one resolves against the working directory of the server process.",
+    ),
+  ),
+  issueId: recordId,
+  filename: v.optional(
+    v.pipe(
+      notBlank,
+      v.description(
+        "Name the attachment is shown under; the last segment of `path` by default.",
+      ),
+    ),
+  ),
+  description: v.optional(v.string()),
+  notes: v.optional(
+    v.pipe(
+      v.string(),
+      v.description(
+        "Comment to add to the issue in the same history entry as the attachment.",
+      ),
+    ),
+  ),
+});
+
 /** Every attachment-tool argument shape, discriminated by `action`. */
 export type AttachmentToolInput =
   | v.InferOutput<typeof showInput>
-  | v.InferOutput<typeof downloadInput>;
+  | v.InferOutput<typeof downloadInput>
+  | v.InferOutput<typeof attachInput>;
 
 /**
- * Builds the attachment-tool argument schema. Both actions survive `readonly`,
- * which prunes what mutates Redmine (ADR-0001); a download only reads it, and
- * writes to the caller's own filesystem.
+ * Builds the attachment-tool argument schema for the given mode. `readonly`
+ * prunes what mutates Redmine (ADR-0001), so it drops `attach` but keeps
+ * `download`, which only reads Redmine and writes to the caller's own
+ * filesystem.
  */
-export function attachmentInputSchema(_mode: Mode) {
-  return v.variant("action", [showInput, downloadInput]);
+export function attachmentInputSchema(mode: Mode) {
+  const read = [showInput, downloadInput] as const;
+  return mode === "readonly"
+    ? v.variant("action", [...read])
+    : v.variant("action", [...read, attachInput]);
 }

@@ -341,23 +341,39 @@ export type TimeEntryPort = {
 /**
  * The bytes of an attachment together with the metadata describing them. The
  * content is a stream so an attachment of any size can be consumed without
- * being held in memory.
+ * being held in memory, and disposing it releases the stream whether or not it
+ * was read.
  */
-export type AttachmentContent = {
+export type AttachmentContent = AsyncDisposable & {
   filename: string;
   contentType: string;
   filesize: number;
   body: ReadableStream<Uint8Array>;
 };
 
+/** How a file attached to an issue is recorded, and the comment it comes with. */
+export type IssueAttachment = {
+  filename: string;
+  description?: string;
+  notes?: string;
+};
+
 /**
- * The attachment operations the tool layer depends on. Both read: `show`
- * returns the metadata, `download` the content, and neither changes anything in
- * Redmine.
+ * The attachment operations the tool layer depends on. `show` returns the
+ * metadata and `download` the content; only `attach` changes Redmine.
  */
 export type AttachmentPort = {
   show(id: number): Promise<RedmineResult<unknown>>;
   download(id: number): Promise<RedmineResult<AttachmentContent>>;
+  /**
+   * Adds the content to the issue as a new attachment. The stream stays the
+   * caller's to release.
+   */
+  attach(
+    issueId: number,
+    body: ReadableStream<Uint8Array>,
+    attachment: IssueAttachment,
+  ): Promise<RedmineResult<null>>;
 };
 
 /** The enumeration listings the tool layer depends on; read-only in Redmine's API. */
