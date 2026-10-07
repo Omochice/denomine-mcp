@@ -135,7 +135,7 @@ export function describeIssue(
   issue: v.BaseIssue<unknown>,
 ): string[] {
   const path = v.getDotPath(issue);
-  if (path == null || path === "action") {
+  if (path == null) {
     return [issue.message];
   }
   const nested = (issue.issues ?? []).flatMap((sub) => {
