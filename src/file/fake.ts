@@ -1,4 +1,5 @@
 import { Result } from "@praha/byethrow";
+import { basename } from "@std/path";
 import type { FilePort, FileResult, LocalContent } from "./port.ts";
 
 /** A save the fake recorded, with the stream drained to text. */
@@ -56,9 +57,9 @@ export class FakeFilePort implements FilePort {
     }
     const bytes = new TextEncoder().encode(content);
     return Promise.resolve(Result.succeed({
-      filename: path.split("/").at(-1) ?? path,
+      filename: basename(path),
       size: bytes.byteLength,
-      body: new Response(bytes).body!,
+      body: ReadableStream.from([bytes]),
     }));
   }
 }
