@@ -18,7 +18,7 @@
     "test:integration": "deno test --allow-read --allow-net --allow-env src/",
     "license": "deno run --allow-run=deno,cargo --allow-net=jsr.io --allow-read --allow-write=third-party-licenses.json task/license.ts",
     "build:ffi": "cargo build --release --manifest-path ffi/Cargo.toml",
-    "compile:bin": "deno run --allow-run=deno task/compile.ts",
+    "compile:bin": "deno run --allow-run=deno,git --allow-write=build-info.json task/compile.ts",
     "compile": "deno task build:ffi && deno task compile:bin"
   },
   "imports": {
