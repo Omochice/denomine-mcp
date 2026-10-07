@@ -18,6 +18,7 @@ import { searchTool } from "../tools/search/mod.ts";
 import { timeEntryTool } from "../tools/time-entry/mod.ts";
 import { enumerationTool } from "../tools/enumeration/mod.ts";
 import { attachmentTool } from "../tools/attachment/mod.ts";
+import { serverInfoTool } from "../tools/server-info/mod.ts";
 import type { ToolModule } from "../mcp/tool.ts";
 import type { Mode } from "../tools/mode.ts";
 import type { Keyring } from "../keyring/port.ts";
@@ -89,6 +90,7 @@ export function registeredTools(context: RedmineContext): ToolModule[] {
     timeEntryTool(new TimeEntryClient(context)),
     enumerationTool(new EnumerationClient(context)),
     attachmentTool(new AttachmentClient(context), new LocalFile()),
+    serverInfoTool(),
   ];
 }
 

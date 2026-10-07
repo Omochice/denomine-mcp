@@ -20,6 +20,7 @@ import { wikiTool } from "../tools/wiki/mod.ts";
 import { versionTool } from "../tools/version/mod.ts";
 import { relationTool } from "../tools/relation/mod.ts";
 import { searchTool } from "../tools/search/mod.ts";
+import { serverInfoTool } from "../tools/server-info/mod.ts";
 import { timeEntryTool } from "../tools/time-entry/mod.ts";
 import { enumerationTool } from "../tools/enumeration/mod.ts";
 import type { ToolModule } from "./tool.ts";
@@ -137,6 +138,59 @@ Deno.test("MCP server advertises and dispatches the read-only search tool", asyn
   expect(result.isError).not.toBe(true);
   const hits = JSON.parse(textOf(result)) as { id: number }[];
   expect(hits.map((hit) => hit.id)).toStrictEqual([1]);
+});
+
+Deno.test("the server info tool reports the version and the commit the binary was built from", async () => {
+  await using client = await connectTools(
+    [serverInfoTool(() => Promise.resolve({ commit: "0123abc", dirty: true }))],
+    "readonly",
+  );
+  const { tools } = await client.listTools();
+  expect(tools.map((tool: { name: string }) => tool.name)).toStrictEqual([
+    "denomine_mcp_info",
+  ]);
+  expect(Object.keys(tools[0].inputSchema.properties ?? {})).toStrictEqual([
+    "show",
+  ]);
+
+  const result = await client.callTool({
+    name: "denomine_mcp_info",
+    arguments: { show: {} },
+  }) as CallResult;
+  expect(result.isError).not.toBe(true);
+  expect(JSON.parse(textOf(result))).toStrictEqual({
+    version: VERSION,
+    build: { commit: "0123abc", dirty: true },
+  });
+});
+
+Deno.test("the server info tool reports no build when running from source", async () => {
+  await using client = await connectTools(
+    [serverInfoTool(() => Promise.resolve(undefined))],
+    "full",
+  );
+  const result = await client.callTool({
+    name: "denomine_mcp_info",
+    arguments: { show: {} },
+  }) as CallResult;
+  expect(JSON.parse(textOf(result))).toStrictEqual({
+    version: VERSION,
+    build: null,
+  });
+});
+
+Deno.test("the server info tool is registered in both modes", async () => {
+  const tools = registeredTools({
+    endpoint: "https://redmine.invalid",
+    apiKey: "unused",
+  });
+  for (const mode of modes) {
+    await using client = await connectTools(tools, mode);
+    const { tools: listed } = await client.listTools();
+    expect(listed.map((tool: { name: string }) => tool.name), mode).toContain(
+      "denomine_mcp_info",
+    );
+  }
 });
 
 Deno.test("readonly mode advertises only read actions for every CRUD tool", async () => {
