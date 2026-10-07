@@ -493,6 +493,23 @@ Deno.test("arguments that do not name exactly one action are rejected with the v
   }
 });
 
+Deno.test("an unknown tool is reported with the available tools listed", async () => {
+  const client = await connect("full");
+  try {
+    const result = await client.callTool({
+      name: "redmine_issue",
+      arguments: { list: {} },
+    }) as CallResult;
+    expect(result.isError).toBe(true);
+    expect(JSON.parse(textOf(result))).toStrictEqual({
+      status: 0,
+      errors: ["unknown tool `redmine_issue`, one of: redmine_issues"],
+    });
+  } finally {
+    await client.close();
+  }
+});
+
 Deno.test("an action whose arguments are not an object is rejected", async () => {
   const client = await connect("full");
   try {

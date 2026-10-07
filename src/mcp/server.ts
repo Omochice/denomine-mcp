@@ -46,7 +46,11 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
       const tool = byName.get(request.params.name);
       if (tool == null) {
         return Promise.resolve(
-          argumentError([`unknown tool: ${request.params.name}`]),
+          argumentError([
+            `unknown tool \`${request.params.name}\`, one of: ${
+              [...byName.keys()].join(", ")
+            }`,
+          ]),
         );
       }
       const tagged = fromActionKeyed(
