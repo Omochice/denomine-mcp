@@ -508,6 +508,30 @@ Deno.test("an action whose arguments are not an object is rejected", async () =>
   }
 });
 
+Deno.test("calls rejected before reaching Redmine report the same status-and-errors payload as Redmine failures", async () => {
+  const client = await connect("full");
+  try {
+    for (
+      const call of [
+        { name: "redmine_unknown", arguments: { list: {} } },
+        { name: "redmine_issues", arguments: {} },
+        { name: "redmine_issues", arguments: { show: { id: "one" } } },
+      ]
+    ) {
+      const result = await client.callTool(call) as CallResult;
+      expect(result.isError, JSON.stringify(call)).toBe(true);
+      const failure = JSON.parse(textOf(result)) as {
+        status: number;
+        errors: string[];
+      };
+      expect(failure.status, JSON.stringify(call)).toBe(0);
+      expect(failure.errors.length, JSON.stringify(call)).toBeGreaterThan(0);
+    }
+  } finally {
+    await client.close();
+  }
+});
+
 Deno.test("an action key cannot be overridden by an action field inside its arguments", async () => {
   const client = await connect("readonly");
   try {
