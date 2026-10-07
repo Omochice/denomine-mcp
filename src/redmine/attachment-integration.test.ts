@@ -34,6 +34,7 @@ Deno.test({
     const context = { endpoint: endpoint!, apiKey: apiKey! };
     const issues = new RedmineClient(context);
     const attachments = new AttachmentClient(context);
+    await using cleanup = new AsyncDisposableStack();
 
     const subject = `attachment ${Date.now()}`;
     const created = await issues.create({
@@ -50,82 +51,80 @@ Deno.test({
       .find((candidate) => candidate.subject === subject);
     expect(issue, `created issue ${subject} not found`).toBeDefined();
     const issueId = issue!.id;
+    cleanup.defer(async () => {
+      await issues.delete(issueId);
+    });
+    const uploaded = await fetch(`${context.endpoint}/uploads.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "X-Redmine-API-Key": context.apiKey,
+      },
+      body: new TextEncoder().encode(content),
+    });
+    expect(uploaded.ok, `upload failed with ${uploaded.status}`).toBe(true);
+    const { upload } = await uploaded.json() as {
+      upload: { token: string };
+    };
 
-    try {
-      const uploaded = await fetch(`${context.endpoint}/uploads.json`, {
-        method: "POST",
+    const attached = await fetch(
+      `${context.endpoint}/issues/${issueId}.json`,
+      {
+        method: "PUT",
         headers: {
-          "Content-Type": "application/octet-stream",
+          "Content-Type": "application/json",
           "X-Redmine-API-Key": context.apiKey,
         },
-        body: new TextEncoder().encode(content),
-      });
-      expect(uploaded.ok, `upload failed with ${uploaded.status}`).toBe(true);
-      const { upload } = await uploaded.json() as {
-        upload: { token: string };
-      };
-
-      const attached = await fetch(
-        `${context.endpoint}/issues/${issueId}.json`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Redmine-API-Key": context.apiKey,
+        body: JSON.stringify({
+          issue: {
+            uploads: [{
+              token: upload.token,
+              filename: "integration.txt",
+              content_type: "text/plain",
+            }],
           },
-          body: JSON.stringify({
-            issue: {
-              uploads: [{
-                token: upload.token,
-                filename: "integration.txt",
-                content_type: "text/plain",
-              }],
-            },
-          }),
-        },
-      );
-      expect(attached.ok, `attaching failed with ${attached.status}`).toBe(
-        true,
-      );
-      await attached.body?.cancel();
+        }),
+      },
+    );
+    expect(attached.ok, `attaching failed with ${attached.status}`).toBe(
+      true,
+    );
+    await attached.body?.cancel();
 
-      const shownIssue = await issues.show(issueId, ["attachments"]);
-      expect(Result.isSuccess(shownIssue)).toBe(true);
-      const attachment =
-        (Result.unwrap(shownIssue) as { attachments: { id: number }[] })
-          .attachments[0];
-      expect(attachment, "uploaded attachment not found on the issue")
-        .toBeDefined();
-      const attachmentId = attachment.id;
+    const shownIssue = await issues.show(issueId, ["attachments"]);
+    expect(Result.isSuccess(shownIssue)).toBe(true);
+    const attachment =
+      (Result.unwrap(shownIssue) as { attachments: { id: number }[] })
+        .attachments[0];
+    expect(attachment, "uploaded attachment not found on the issue")
+      .toBeDefined();
+    const attachmentId = attachment.id;
 
-      await t.step("show returns the attachment metadata", async () => {
-        const result = await attachments.show(attachmentId);
-        expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
-        const shown = Result.unwrap(result) as {
-          id: number;
-          filename: string;
-          filesize: number;
-        };
-        expect(shown.id).toBe(attachmentId);
-        expect(shown.filename).toBe("integration.txt");
-        expect(shown.filesize).toBe(content.length);
-      });
+    await t.step("show returns the attachment metadata", async () => {
+      const result = await attachments.show(attachmentId);
+      expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
+      const shown = Result.unwrap(result) as {
+        id: number;
+        filename: string;
+        filesize: number;
+      };
+      expect(shown.id).toBe(attachmentId);
+      expect(shown.filename).toBe("integration.txt");
+      expect(shown.filesize).toBe(content.length);
+    });
 
-      await t.step("download streams the content back", async () => {
-        const result = await attachments.download(attachmentId);
-        expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
-        const downloaded = Result.unwrap(result);
-        expect(downloaded.filename).toBe("integration.txt");
-        expect(downloaded.filesize).toBe(content.length);
-        expect(await new Response(downloaded.body).text()).toBe(content);
-      });
+    await t.step("download streams the content back", async () => {
+      const result = await attachments.download(attachmentId);
+      expect(Result.isSuccess(result), JSON.stringify(result)).toBe(true);
+      const downloaded = Result.unwrap(result);
+      expect(downloaded.filename).toBe("integration.txt");
+      expect(downloaded.filesize).toBe(content.length);
+      expect(await new Response(downloaded.body).text()).toBe(content);
+    });
 
-      await t.step("show fails for an unknown attachment", async () => {
-        const result = await attachments.show(attachmentId + 100_000);
-        expect(Result.isFailure(result)).toBe(true);
-      });
-    } finally {
-      await issues.delete(issueId);
-    }
+    await t.step("show fails for an unknown attachment", async () => {
+      const result = await attachments.show(attachmentId + 100_000);
+      expect(Result.isFailure(result)).toBe(true);
+    });
   },
 });
