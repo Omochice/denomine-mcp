@@ -1,4 +1,5 @@
 import * as v from "@valibot/valibot";
+import { recordId } from "../record-id.ts";
 import type { Mode } from "../mode.ts";
 import { projectRef } from "../project-ref.ts";
 
@@ -18,7 +19,7 @@ export const listInput = v.strictObject({
 
 export const showInput = v.strictObject({
   action: v.literal("show"),
-  id: v.number(),
+  id: recordId,
 });
 
 export const createInput = v.strictObject({
@@ -34,7 +35,7 @@ export const createInput = v.strictObject({
 
 export const updateInput = v.strictObject({
   action: v.literal("update"),
-  id: v.number(),
+  id: recordId,
   name: v.optional(v.string()),
   description: v.optional(v.string()),
   status: v.optional(status),
@@ -45,7 +46,7 @@ export const updateInput = v.strictObject({
 
 export const deleteInput = v.strictObject({
   action: v.literal("delete"),
-  id: v.number(),
+  id: recordId,
 });
 
 /** Every version-tool argument shape, discriminated by `action`. */

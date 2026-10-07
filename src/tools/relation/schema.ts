@@ -1,4 +1,5 @@
 import * as v from "@valibot/valibot";
+import { recordId } from "../record-id.ts";
 import type { Mode } from "../mode.ts";
 
 const relationType = v.picklist([
@@ -15,25 +16,25 @@ const relationType = v.picklist([
 
 export const listInput = v.strictObject({
   action: v.literal("list"),
-  issueId: v.number(),
+  issueId: recordId,
 });
 
 export const showInput = v.strictObject({
   action: v.literal("show"),
-  id: v.number(),
+  id: recordId,
 });
 
 export const createInput = v.strictObject({
   action: v.literal("create"),
-  issueId: v.number(),
-  issueToId: v.number(),
+  issueId: recordId,
+  issueToId: recordId,
   relationType,
   delay: v.optional(v.number()),
 });
 
 export const deleteInput = v.strictObject({
   action: v.literal("delete"),
-  id: v.number(),
+  id: recordId,
 });
 
 /** Every relation-tool argument shape, discriminated by `action`. */

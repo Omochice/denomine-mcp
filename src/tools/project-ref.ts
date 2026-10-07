@@ -1,4 +1,5 @@
 import * as v from "@valibot/valibot";
+import { recordId } from "./record-id.ts";
 
 const identifier = v.pipe(
   v.string(),
@@ -10,7 +11,7 @@ const identifier = v.pipe(
  * numeric id or the identifier is accepted.
  */
 export const projectRef = v.pipe(
-  v.union([v.number(), identifier]),
+  v.union([recordId, identifier]),
   v.description(
     "Numeric project id, or the project identifier from a Redmine URL (the <identifier> in /projects/<identifier>/...).",
   ),
