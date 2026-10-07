@@ -9,12 +9,12 @@
     "jsr:@cliffy/prompt@1.3.1": "1.3.1",
     "jsr:@cliffy/table@^1.3.1": "1.3.1",
     "jsr:@cliffy/upgrade@^1.3.1": "1.3.1",
-    "jsr:@omochice/redmine@3.6.0": "3.6.0",
+    "jsr:@omochice/redmine@3.7.0": "3.7.0",
     "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/encoding@^1.0.11": "1.0.11",
     "jsr:@std/expect@1.0.20": "1.0.20",
     "jsr:@std/fmt@^1.0.10": "1.0.10",
-    "jsr:@std/http@1.1.3": "1.1.3",
+    "jsr:@std/http@1.1.4": "1.1.4",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/io@~0.225.3": "0.225.3",
@@ -95,8 +95,8 @@
         "jsr:@std/tar"
       ]
     },
-    "@omochice/redmine@3.6.0": {
-      "integrity": "8bcd9b99068689d586510ad7cc911c7b0f55ae3495b6a6a46f758260c858bcc0",
+    "@omochice/redmine@3.7.0": {
+      "integrity": "80d7e9038be10fcb23013abbfae9031bf30852701c9d51a048dab5d2cdedf9cc",
       "dependencies": [
         "jsr:@std/http",
         "jsr:@std/path@1.1.6",
@@ -124,8 +124,8 @@
     "@std/fmt@1.0.10": {
       "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
     },
-    "@std/http@1.1.3": {
-      "integrity": "73a98e05ff58aa18bea562d286172e6c815b1eddd4fcab194beda19e3683b88c"
+    "@std/http@1.1.4": {
+      "integrity": "4f1575226ca7c0df1df38b26d50265fed30869b2a63ab867edc5b92492150c8c"
     },
     "@std/internal@1.0.14": {
       "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
@@ -831,7 +831,7 @@
     "dependencies": [
       "jsr:@cliffy/command@1.3.1",
       "jsr:@cliffy/prompt@1.3.1",
-      "jsr:@omochice/redmine@3.6.0",
+      "jsr:@omochice/redmine@3.7.0",
       "jsr:@std/expect@1.0.20",
       "jsr:@std/text@1.0.19",
       "jsr:@valibot/to-json-schema@1.8.0",
