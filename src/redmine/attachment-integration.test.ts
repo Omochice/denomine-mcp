@@ -16,18 +16,26 @@ const apiKey = env("DENOMINE_TEST_API_KEY");
 const projectId = Number(env("DENOMINE_TEST_PROJECT_ID") ?? "1");
 const content = "attachment integration content";
 
+function streamOf(text: string): ReadableStream<Uint8Array> {
+  return ReadableStream.from([new TextEncoder().encode(text)]);
+}
+
+type ShownIssue = {
+  attachments: { id: number; filename: string; description: string }[];
+  journals: { notes?: string }[];
+};
+
 /**
  * Exercises the real `@omochice/redmine`-backed attachment client end to end
  * against a live Redmine (see doc/verification.md). Skipped unless the endpoint
  * and API key are supplied.
  *
- * Redmine has no endpoint that creates an attachment on its own: a file is
- * uploaded for a token, and the token is attached to an issue. Neither step is
- * part of any port here, so both are driven with raw requests, and the issue
- * carrying the attachment is removed afterwards.
+ * The content is attached as a stream rather than as bytes, because that is
+ * how the tool hands a local file to Redmine. The issue carrying the
+ * attachments is removed afterwards.
  */
 Deno.test({
-  name: "AttachmentClient reads an attachment from a live Redmine",
+  name: "AttachmentClient attaches and reads attachments on a live Redmine",
   ignore: endpoint == null || apiKey == null,
   sanitizeResources: false,
   fn: async (t) => {
@@ -54,51 +62,58 @@ Deno.test({
     cleanup.defer(async () => {
       await issues.delete(issueId);
     });
-    const uploaded = await fetch(`${context.endpoint}/uploads.json`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "X-Redmine-API-Key": context.apiKey,
-      },
-      body: new TextEncoder().encode(content),
+
+    async function shownIssue(): Promise<ShownIssue> {
+      const shown = await issues.show(issueId, ["attachments", "journals"]);
+      expect(Result.isSuccess(shown), JSON.stringify(shown)).toBe(true);
+      return Result.unwrap(shown) as ShownIssue;
+    }
+
+    const attached = await attachments.attach(issueId, streamOf(content), {
+      filename: "integration.txt",
     });
-    expect(uploaded.ok, `upload failed with ${uploaded.status}`).toBe(true);
-    const { upload } = await uploaded.json() as {
-      upload: { token: string };
-    };
+    expect(Result.isSuccess(attached), JSON.stringify(attached)).toBe(true);
+    const [attachment] = (await shownIssue()).attachments;
+    expect(attachment, "attachment not found on the issue").toBeDefined();
+    const attachmentId = attachment.id;
 
-    const attached = await fetch(
-      `${context.endpoint}/issues/${issueId}.json`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Redmine-API-Key": context.apiKey,
-        },
-        body: JSON.stringify({
-          issue: {
-            uploads: [{
-              token: upload.token,
-              filename: "integration.txt",
-              content_type: "text/plain",
-            }],
-          },
-        }),
+    await t.step("attach adds the file under the given filename", () => {
+      expect(attachment.filename).toBe("integration.txt");
+    });
+
+    await t.step(
+      "attach records the description and the comment together",
+      async () => {
+        const again = await attachments.attach(issueId, streamOf("second"), {
+          filename: "second.txt",
+          description: "second file",
+          notes: "attached a second file",
+        });
+        expect(Result.isSuccess(again), JSON.stringify(again)).toBe(true);
+
+        const shown = await shownIssue();
+        expect(
+          shown.attachments
+            .map(({ filename, description }) => ({ filename, description }))
+            .toSorted((a, b) => a.filename.localeCompare(b.filename)),
+        ).toStrictEqual([
+          { filename: "integration.txt", description: "" },
+          { filename: "second.txt", description: "second file" },
+        ]);
+        expect(shown.journals.map(({ notes }) => notes)).toContain(
+          "attached a second file",
+        );
       },
     );
-    expect(attached.ok, `attaching failed with ${attached.status}`).toBe(
-      true,
-    );
-    await attached.body?.cancel();
 
-    const shownIssue = await issues.show(issueId, ["attachments"]);
-    expect(Result.isSuccess(shownIssue)).toBe(true);
-    const attachment =
-      (Result.unwrap(shownIssue) as { attachments: { id: number }[] })
-        .attachments[0];
-    expect(attachment, "uploaded attachment not found on the issue")
-      .toBeDefined();
-    const attachmentId = attachment.id;
+    await t.step("attach fails for an issue that does not exist", async () => {
+      const result = await attachments.attach(
+        issueId + 100_000,
+        streamOf("orphan"),
+        { filename: "orphan.txt" },
+      );
+      expect(Result.isFailure(result)).toBe(true);
+    });
 
     await t.step("show returns the attachment metadata", async () => {
       const result = await attachments.show(attachmentId);
