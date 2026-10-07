@@ -1,4 +1,5 @@
 import { Result } from "@praha/byethrow";
+import { releaseStream } from "../stream.ts";
 import type {
   AttachmentContent,
   AttachmentPort,
@@ -549,19 +550,21 @@ export class FakeAttachmentPort implements AttachmentPort {
     }
     const bytes = new TextEncoder().encode(attachment.content);
     const declared = attachment.metadata.filesize;
+    const body = new ReadableStream<Uint8Array>({
+      start: (controller) => {
+        controller.enqueue(bytes);
+        controller.close();
+      },
+      cancel: () => {
+        this.cancelled.push(id);
+      },
+    });
     return Promise.resolve(Result.succeed({
       filename: String(attachment.metadata.filename),
       contentType: String(attachment.metadata.contentType),
       filesize: typeof declared === "number" ? declared : bytes.byteLength,
-      body: new ReadableStream({
-        start: (controller) => {
-          controller.enqueue(bytes);
-          controller.close();
-        },
-        cancel: () => {
-          this.cancelled.push(id);
-        },
-      }),
+      body,
+      [Symbol.asyncDispose]: () => releaseStream(body),
     }));
   }
 

@@ -1,6 +1,7 @@
 import { Redmine } from "@omochice/redmine";
 import { Result } from "@praha/byethrow";
 import { toRedmineError } from "./error.ts";
+import { releaseStream } from "../stream.ts";
 import type {
   AttachmentContent,
   AttachmentPort,
@@ -32,7 +33,13 @@ export class AttachmentClient implements AttachmentPort {
 
   download(id: number): Promise<RedmineResult<AttachmentContent>> {
     return Result.try({
-      try: () => this.#redmine.attachment.download(id),
+      try: async () => {
+        const content = await this.#redmine.attachment.download(id);
+        return {
+          ...content,
+          [Symbol.asyncDispose]: () => releaseStream(content.body),
+        };
+      },
       catch: toRedmineError,
     });
   }

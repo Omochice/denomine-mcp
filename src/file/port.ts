@@ -27,6 +27,7 @@ export type FilePort = {
    * Writes a stream to `path` without ever replacing an existing file, failing
    * once more than `maxSize` bytes have arrived. The bytes are counted as they
    * stream, because the size a server declares is not the size it sends.
+   * The stream stays the caller's to release.
    *
    * @returns The absolute path written.
    */

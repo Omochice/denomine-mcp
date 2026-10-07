@@ -46,19 +46,21 @@ async function download(
     return toToolResponse(downloaded);
   }
 
-  const { body, ...metadata } = downloaded.value;
-  if (metadata.filesize > input.maxSize) {
-    await body.cancel().catch(() => {});
+  await using content = downloaded.value;
+  const { filename, contentType, filesize } = content;
+  if (filesize > input.maxSize) {
     return localFailure(
-      `attachment ${input.id} is ${metadata.filesize} bytes, which exceeds the maxSize limit of ${input.maxSize} bytes`,
+      `attachment ${input.id} is ${filesize} bytes, which exceeds the maxSize limit of ${input.maxSize} bytes`,
     );
   }
 
-  const saved = await files.save(input.path, body, input.maxSize);
+  const saved = await files.save(input.path, content.body, input.maxSize);
   if (Result.isFailure(saved)) {
     return localFailure(saved.error.message);
   }
-  return toToolResponse(Result.succeed({ path: saved.value, ...metadata }));
+  return toToolResponse(
+    Result.succeed({ path: saved.value, filename, contentType, filesize }),
+  );
 }
 
 async function attach(

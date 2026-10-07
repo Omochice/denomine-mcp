@@ -341,9 +341,10 @@ export type TimeEntryPort = {
 /**
  * The bytes of an attachment together with the metadata describing them. The
  * content is a stream so an attachment of any size can be consumed without
- * being held in memory.
+ * being held in memory, and disposing it releases the stream whether or not it
+ * was read.
  */
-export type AttachmentContent = {
+export type AttachmentContent = AsyncDisposable & {
   filename: string;
   contentType: string;
   filesize: number;

@@ -36,7 +36,6 @@ export class LocalFile implements FilePort {
     try {
       file = await Deno.open(path, { write: true, createNew: true });
     } catch (error) {
-      await body.cancel().catch(() => {});
       return Result.fail(toError(error));
     }
 
