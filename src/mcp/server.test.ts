@@ -41,18 +41,8 @@ async function connectTools(tools: ToolModule[], mode: Mode): Promise<Client> {
   return client;
 }
 
-async function connect(mode: Mode): Promise<Client> {
-  const server = buildServer([issuesTool(new FakeIssuePort())], mode);
-  const [clientTransport, serverTransport] = InMemoryTransport
-    .createLinkedPair();
-  const client = new Client({ name: "test", version: "0" }, {
-    capabilities: {},
-  });
-  await Promise.all([
-    server.connect(serverTransport),
-    client.connect(clientTransport),
-  ]);
-  return client;
+function connect(mode: Mode): Promise<Client> {
+  return connectTools([issuesTool(new FakeIssuePort())], mode);
 }
 
 type CallResult = { content: { text: string }[]; isError?: boolean };
