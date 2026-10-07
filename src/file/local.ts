@@ -1,5 +1,6 @@
 import { Result } from "@praha/byethrow";
-import type { FilePort, FileResult } from "./port.ts";
+import { basename } from "@std/path";
+import type { FilePort, FileResult, LocalContent } from "./port.ts";
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
@@ -21,8 +22,8 @@ function bounded(maxSize: number): TransformStream<Uint8Array, Uint8Array> {
 }
 
 /**
- * Real {@link FilePort} backed by Deno's filesystem. The content is piped
- * straight to disk so an attachment of any size never has to be held in memory.
+ * Real {@link FilePort} backed by Deno's filesystem. Content is streamed in both
+ * directions, so a file of any size never has to be held in memory.
  */
 export class LocalFile implements FilePort {
   async save(
@@ -50,6 +51,31 @@ export class LocalFile implements FilePort {
     try {
       return Result.succeed(await Deno.realPath(path));
     } catch (error) {
+      return Result.fail(toError(error));
+    }
+  }
+
+  async open(path: string): Promise<FileResult<LocalContent>> {
+    let file: Deno.FsFile;
+    try {
+      file = await Deno.open(path, { read: true });
+    } catch (error) {
+      return Result.fail(toError(error));
+    }
+
+    try {
+      const info = await file.stat();
+      if (!info.isFile) {
+        file.close();
+        return Result.fail(new Error(`${path} is not a regular file`));
+      }
+      return Result.succeed({
+        filename: basename(path),
+        size: info.size,
+        body: file.readable,
+      });
+    } catch (error) {
+      file.close();
       return Result.fail(toError(error));
     }
   }

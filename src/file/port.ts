@@ -7,9 +7,16 @@ import type { Result } from "@praha/byethrow";
  */
 export type FileResult<T> = Result.Result<T, Error>;
 
+/** A local file opened for reading, with the name and size it has on disk. */
+export type LocalContent = {
+  filename: string;
+  size: number;
+  body: ReadableStream<Uint8Array>;
+};
+
 /**
- * The filesystem writes the tool layer depends on. The core depends only on this
- * port; the real backend binds it to Deno, and a fake backs the unit tests,
+ * The filesystem access the tool layer depends on. The core depends only on
+ * this port; the real backend binds it to Deno, and a fake backs the unit tests,
  * which run without write permission (see ADR-0007).
  */
 export type FilePort = {
@@ -25,4 +32,9 @@ export type FilePort = {
     body: ReadableStream<Uint8Array>,
     maxSize: number,
   ): Promise<FileResult<string>>;
+  /**
+   * Opens the regular file at `path` for reading. The content is a stream, so
+   * a file of any size can be passed on without being held in memory.
+   */
+  open(path: string): Promise<FileResult<LocalContent>>;
 };

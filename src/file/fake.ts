@@ -1,5 +1,5 @@
 import { Result } from "@praha/byethrow";
-import type { FilePort, FileResult } from "./port.ts";
+import type { FilePort, FileResult, LocalContent } from "./port.ts";
 
 /** A save the fake recorded, with the stream drained to text. */
 export type SavedFile = {
@@ -12,14 +12,17 @@ export type SavedFile = {
  * In-memory {@link FilePort} for unit tests, standing in for the filesystem so
  * the handler can be exercised without write permission (ADR-0007). The
  * recorded saves let a test assert that a failed download never reached the
- * filesystem at all, and that the byte limit arrived with it.
+ * filesystem at all, and that the byte limit arrived with it. Only the seeded
+ * `files` can be opened.
  */
 export class FakeFilePort implements FilePort {
   readonly saved: SavedFile[] = [];
   readonly #failWith?: string;
+  readonly #files: Map<string, string>;
 
-  constructor(options?: { failWith: string }) {
+  constructor(options?: { failWith?: string; files?: Record<string, string> }) {
     this.#failWith = options?.failWith;
+    this.#files = new Map(Object.entries(options?.files ?? {}));
   }
 
   async save(
@@ -42,5 +45,20 @@ export class FakeFilePort implements FilePort {
       maxSize,
     });
     return Result.succeed(`/absolute/${path}`);
+  }
+
+  open(path: string): Promise<FileResult<LocalContent>> {
+    const content = this.#files.get(path);
+    if (content == null) {
+      return Promise.resolve(
+        Result.fail(new Error(`No such file or directory: ${path}`)),
+      );
+    }
+    const bytes = new TextEncoder().encode(content);
+    return Promise.resolve(Result.succeed({
+      filename: path.split("/").at(-1) ?? path,
+      size: bytes.byteLength,
+      body: new Response(bytes).body!,
+    }));
   }
 }

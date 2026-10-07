@@ -5,11 +5,12 @@ import { type ToolResponse, toToolResponse } from "../response.ts";
 import type { AttachmentToolInput } from "./schema.ts";
 
 type DownloadInput = Extract<AttachmentToolInput, { action: "download" }>;
+type AttachInput = Extract<AttachmentToolInput, { action: "attach" }>;
 
 /**
  * Runs one attachment-tool call and maps the outcome to an MCP response
- * (ADR-0002). A download crosses two boundaries — Redmine and the filesystem —
- * and a failure at either is reported in the same shape.
+ * (ADR-0002). A download or an attach crosses two boundaries — Redmine and the
+ * filesystem — and a failure at either is reported in the same shape.
  */
 export async function handleAttachment(
   port: AttachmentPort,
@@ -21,6 +22,8 @@ export async function handleAttachment(
       return toToolResponse(await port.show(input.id));
     case "download":
       return await download(port, files, input);
+    case "attach":
+      return await attach(port, files, input);
   }
 }
 
@@ -57,4 +60,33 @@ async function download(
     );
   }
   return toToolResponse(Result.succeed({ path: saved.value, ...metadata }));
+}
+
+async function attach(
+  port: AttachmentPort,
+  files: FilePort,
+  input: AttachInput,
+): Promise<ToolResponse> {
+  const opened = await files.open(input.path);
+  if (Result.isFailure(opened)) {
+    return toToolResponse(
+      Result.fail({ status: 0, errors: [opened.error.message] }),
+    );
+  }
+
+  const { body, size } = opened.value;
+  const filename = input.filename ?? opened.value.filename;
+  const attached = await port.attach(input.issueId, body, {
+    filename,
+    ...(input.description == null ? {} : { description: input.description }),
+    ...(input.notes == null ? {} : { notes: input.notes }),
+  });
+  if (Result.isFailure(attached)) {
+    // A request that failed before reading the stream leaves the file open.
+    await body.cancel().catch(() => {});
+    return toToolResponse(attached);
+  }
+  return toToolResponse(
+    Result.succeed({ issueId: input.issueId, filename, filesize: size }),
+  );
 }

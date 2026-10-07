@@ -3,6 +3,7 @@ import type {
   AttachmentContent,
   AttachmentPort,
   EnumerationPort,
+  IssueAttachment,
   IssueCreate,
   IssueInclude,
   IssueListQuery,
@@ -10,6 +11,7 @@ import type {
   IssueUpdate,
   NoteUpdate,
   ProjectRef,
+  RedmineError,
   RedmineResult,
   RelationCreate,
   RelationPort,
@@ -504,20 +506,32 @@ export type FakeAttachment = {
   content: string;
 };
 
+/** An attach the fake recorded, with the stream drained to text. */
+export type AttachedFile = IssueAttachment & {
+  issueId: number;
+  content: string;
+};
+
 /**
  * In-memory {@link AttachmentPort} for deterministic unit tests. It is seeded
- * with the attachments it serves, because nothing in the tool surface creates
- * one: an attachment reaches Redmine through an upload the API exposes
- * elsewhere.
+ * with the attachments it serves, and records what is attached instead of
+ * serving it back, so a test asserts the attach itself rather than a round
+ * trip through issue metadata the fake does not model.
  */
 export class FakeAttachmentPort implements AttachmentPort {
   readonly cancelled: number[] = [];
+  readonly attached: AttachedFile[] = [];
   readonly #attachments: Map<number, FakeAttachment>;
+  readonly #attachFailsWith?: RedmineError;
 
-  constructor(seed: Record<number, FakeAttachment> = {}) {
+  constructor(
+    seed: Record<number, FakeAttachment> = {},
+    options?: { attachFailsWith: RedmineError },
+  ) {
     this.#attachments = new Map(
       Object.entries(seed).map(([id, attachment]) => [Number(id), attachment]),
     );
+    this.#attachFailsWith = options?.attachFailsWith;
   }
 
   show(id: number): Promise<RedmineResult<unknown>> {
@@ -549,6 +563,19 @@ export class FakeAttachmentPort implements AttachmentPort {
         },
       }),
     }));
+  }
+
+  async attach(
+    issueId: number,
+    body: ReadableStream<Uint8Array>,
+    attachment: IssueAttachment,
+  ): Promise<RedmineResult<null>> {
+    const content = await new Response(body).text();
+    if (this.#attachFailsWith != null) {
+      return Result.fail(this.#attachFailsWith);
+    }
+    this.attached.push({ issueId, ...attachment, content });
+    return Result.succeed(null);
   }
 
   #notFound(): { status: number; errors: string[] } {
