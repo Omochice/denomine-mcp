@@ -52,12 +52,8 @@ export class AttachmentClient implements AttachmentPort {
       try: async () => {
         const token = await this.#redmine.file.upload(body, filename);
         await this.#redmine.issue.update(issueId, {
-          ...(notes == null ? {} : { notes }),
-          uploads: [{
-            token,
-            filename,
-            ...(description == null ? {} : { description }),
-          }],
+          notes,
+          uploads: [{ token, filename, description }],
         });
         return null;
       },
