@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.0.0](https://github.com/Omochice/denomine-mcp/compare/v0.6.0...v1.0.0) (2026-10-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* tool calls pass the action as the single top-level key, e.g. `{"show": {"id": 1}}`, instead of `{"action": "show", "id": 1}`. The old shape is rejected as invalid arguments.
+
+### Features
+
+* key tool arguments by action so Claude Desktop accepts them ([#84](https://github.com/Omochice/denomine-mcp/issues/84)) ([c1ffe79](https://github.com/Omochice/denomine-mcp/commit/c1ffe79a562318a9a2886377eae3bd78f6d721ad))
+* let the model report the server version and build commit ([#94](https://github.com/Omochice/denomine-mcp/issues/94)) ([a464e25](https://github.com/Omochice/denomine-mcp/commit/a464e25b1a3d9e6bda962a0354880d1f78173b21))
+
+
+### Bug Fixes
+
+* list the available tools when a tool name is unknown ([#89](https://github.com/Omochice/denomine-mcp/issues/89)) ([43b457f](https://github.com/Omochice/denomine-mcp/commit/43b457fbc9e2057b5d52863c63b6bf64ee325e99))
+* name an unknown action in the argument error ([#88](https://github.com/Omochice/denomine-mcp/issues/88)) ([7a140a1](https://github.com/Omochice/denomine-mcp/commit/7a140a14951786353cccf60a8bd0969b40867c67))
+* name the nested fields of a union argument that failed ([#90](https://github.com/Omochice/denomine-mcp/issues/90)) ([5d7da5b](https://github.com/Omochice/denomine-mcp/commit/5d7da5b7b697b9e9df9a4e7a467d07d08a21e308))
+* name the offending field in argument validation errors ([#86](https://github.com/Omochice/denomine-mcp/issues/86)) ([ef2162a](https://github.com/Omochice/denomine-mcp/commit/ef2162a79d68a15b58b8c1096922ac12719109e9))
+* reject unknown fields in tool arguments ([#87](https://github.com/Omochice/denomine-mcp/issues/87)) ([f7ddd5f](https://github.com/Omochice/denomine-mcp/commit/f7ddd5fe9185e38c22074697f3b2f31c677ccd05))
+* report argument errors as the status-and-errors JSON ([#85](https://github.com/Omochice/denomine-mcp/issues/85)) ([4f04bce](https://github.com/Omochice/denomine-mcp/commit/4f04bceabb47315d3378c5818deeb3fd7de8b4e7))
+* require record ids to be positive integers ([#91](https://github.com/Omochice/denomine-mcp/issues/91)) ([6ed253e](https://github.com/Omochice/denomine-mcp/commit/6ed253ed4f1961529f9c7d2cc8f34f73b5fa86db))
+
 ## [0.6.0](https://github.com/Omochice/denomine-mcp/compare/v0.5.0...v0.6.0) (2026-10-01)
 
 
