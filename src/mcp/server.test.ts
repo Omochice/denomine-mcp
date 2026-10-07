@@ -608,22 +608,24 @@ Deno.test("every advertised action of every tool declares that it takes no other
   }
 });
 
-Deno.test("an unknown action is reported without a field path the model never sent", async () => {
+Deno.test("an unknown action is reported by name with the valid actions listed", async () => {
   const client = await connect("readonly");
   try {
-    for (const args of [{ delete: { id: 1 } }, { nope: {} }]) {
+    for (
+      const [args, action] of [[{ delete: { id: 1 } }, "delete"], [
+        { nope: {} },
+        "nope",
+      ]] as const
+    ) {
       const result = await client.callTool({
         name: "redmine_issues",
         arguments: args,
       }) as CallResult;
       expect(result.isError, JSON.stringify(args)).toBe(true);
       const failure = JSON.parse(textOf(result)) as { errors: string[] };
-      expect(failure.errors.join("\n"), JSON.stringify(args)).not.toContain(
-        ".action",
-      );
-      expect(failure.errors.join("\n"), JSON.stringify(args)).toContain(
-        "invalid arguments: Invalid type",
-      );
+      expect(failure.errors, JSON.stringify(args)).toStrictEqual([
+        `invalid arguments: unknown action \`${action}\`, one of: list, show`,
+      ]);
     }
   } finally {
     await client.close();
