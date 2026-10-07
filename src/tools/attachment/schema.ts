@@ -2,9 +2,10 @@ import * as v from "@valibot/valibot";
 import { recordId } from "../record-id.ts";
 import type { Mode } from "../mode.ts";
 
+const notBlank = v.pipe(v.string(), v.regex(/\S/, "must not be blank"));
+
 const path = v.pipe(
-  v.string(),
-  v.regex(/\S/, "must not be blank"),
+  notBlank,
   v.description(
     "Destination file path for the saved content. An absolute path is recommended, because a relative one resolves against the working directory of the server process. The file must not already exist.",
   ),
