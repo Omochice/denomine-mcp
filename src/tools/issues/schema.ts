@@ -1,4 +1,5 @@
 import * as v from "@valibot/valibot";
+import { recordId } from "../record-id.ts";
 import type { Mode } from "../mode.ts";
 
 const isoDate = v.pipe(v.string(), v.isoDate());
@@ -85,13 +86,13 @@ export const listInput = v.strictObject({
       "Associations Redmine omits unless asked for. A listed issue carries only these two; `journals` are available through `show`.",
     ),
   ),
-  projectId: v.optional(v.number()),
-  trackerId: v.optional(v.number()),
+  projectId: v.optional(recordId),
+  trackerId: v.optional(recordId),
   statusId: v.optional(
-    v.union([v.number(), v.picklist(["open", "closed", "*"])]),
+    v.union([recordId, v.picklist(["open", "closed", "*"])]),
   ),
-  fixedVersionId: v.optional(v.number()),
-  assignedToId: v.optional(v.union([v.number(), v.literal("me")])),
+  fixedVersionId: v.optional(recordId),
+  assignedToId: v.optional(v.union([recordId, v.literal("me")])),
   startDate: v.optional(dateFilter),
   dueDate: v.optional(dateFilter),
   createdOn: v.optional(pastDateFilter),
@@ -102,7 +103,7 @@ export const listInput = v.strictObject({
 
 export const showInput = v.strictObject({
   action: v.literal("show"),
-  id: v.number(),
+  id: recordId,
   include: v.optional(
     describe(
       v.array(
@@ -123,15 +124,15 @@ export const showInput = v.strictObject({
 
 export const createInput = v.strictObject({
   action: v.literal("create"),
-  projectId: v.number(),
-  trackerId: v.number(),
-  statusId: v.number(),
-  priorityId: v.number(),
+  projectId: recordId,
+  trackerId: recordId,
+  statusId: recordId,
+  priorityId: recordId,
   subject: v.string(),
   description: v.optional(v.string()),
-  fixedVersionId: v.optional(v.number()),
-  assignedToId: v.optional(v.number()),
-  parentIssueId: v.optional(v.number()),
+  fixedVersionId: v.optional(recordId),
+  assignedToId: v.optional(recordId),
+  parentIssueId: v.optional(recordId),
   startDate: v.optional(
     describe(
       isoDate,
@@ -150,38 +151,38 @@ export const createInput = v.strictObject({
 
 export const updateInput = v.strictObject({
   action: v.literal("update"),
-  id: v.number(),
+  id: recordId,
   subject: v.optional(v.string()),
   description: v.optional(v.string()),
   statusId: v.optional(
     describe(
-      v.number(),
+      recordId,
       'Status to move the issue to. Redmine ignores, without an error, a status the workflow does not allow; `show` with `include: ["allowedStatuses"]` lists the ones it does.',
     ),
   ),
-  priorityId: v.optional(v.number()),
-  trackerId: v.optional(v.number()),
+  priorityId: v.optional(recordId),
+  trackerId: v.optional(recordId),
   assignedToId: v.optional(
     describe(
-      v.nullable(v.number()),
+      v.nullable(recordId),
       "User to assign the issue to; `null` unassigns it.",
     ),
   ),
   categoryId: v.optional(
     describe(
-      v.nullable(v.number()),
+      v.nullable(recordId),
       "Issue category to file the issue under; `null` removes the category.",
     ),
   ),
   parentIssueId: v.optional(
     describe(
-      v.nullable(v.number()),
+      v.nullable(recordId),
       "Issue to make the parent of this one; `null` detaches it from its parent.",
     ),
   ),
   fixedVersionId: v.optional(
     describe(
-      v.nullable(v.number()),
+      v.nullable(recordId),
       "Version to move the issue into; `null` takes it out of its version.",
     ),
   ),
@@ -206,11 +207,11 @@ export const updateInput = v.strictObject({
 
 export const deleteInput = v.strictObject({
   action: v.literal("delete"),
-  id: v.number(),
+  id: recordId,
 });
 
 const journalId = describe(
-  v.number(),
+  recordId,
   'Id of the comment (journal), as listed by `show` with `include: ["journals"]`.',
 );
 

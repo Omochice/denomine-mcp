@@ -690,6 +690,35 @@ Deno.test("an unknown action is reported by name with the valid actions listed",
   }
 });
 
+Deno.test("a record id is advertised and checked as a positive integer", async () => {
+  const client = await connect("full");
+  try {
+    const { tools } = await client.listTools();
+    const show = (tools[0].inputSchema.properties as Record<
+      string,
+      { properties: Record<string, unknown> }
+    >).show;
+    expect(show.properties.id).toMatchObject({ type: "integer", minimum: 1 });
+    for (
+      const [id, message] of [[1.5, "Invalid integer"], [
+        0,
+        "Invalid value",
+      ]] as const
+    ) {
+      const result = await client.callTool({
+        name: "redmine_issues",
+        arguments: { show: { id } },
+      }) as CallResult;
+      expect(result.isError, String(id)).toBe(true);
+      expect(textOf(result), String(id)).toContain(
+        `invalid arguments: show.id: ${message}`,
+      );
+    }
+  } finally {
+    await client.close();
+  }
+});
+
 Deno.test("an action key cannot be overridden by an action field inside its arguments", async () => {
   const client = await connect("readonly");
   try {

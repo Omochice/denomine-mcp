@@ -1,10 +1,11 @@
 import * as v from "@valibot/valibot";
+import { recordId } from "../record-id.ts";
 import type { Mode } from "../mode.ts";
 
 export const listInput = v.strictObject({
   action: v.literal("list"),
-  projectId: v.optional(v.number()),
-  userId: v.optional(v.number()),
+  projectId: v.optional(recordId),
+  userId: v.optional(recordId),
   spentOn: v.optional(v.string()),
   from: v.optional(v.string()),
   to: v.optional(v.string()),
@@ -12,33 +13,33 @@ export const listInput = v.strictObject({
 
 export const showInput = v.strictObject({
   action: v.literal("show"),
-  id: v.number(),
+  id: recordId,
 });
 
 export const createInput = v.strictObject({
   action: v.literal("create"),
   hours: v.number(),
-  issueId: v.optional(v.number()),
-  projectId: v.optional(v.number()),
+  issueId: v.optional(recordId),
+  projectId: v.optional(recordId),
   spentOn: v.optional(v.string()),
-  activityId: v.optional(v.number()),
+  activityId: v.optional(recordId),
   comments: v.optional(v.string()),
 });
 
 export const updateInput = v.strictObject({
   action: v.literal("update"),
-  id: v.number(),
+  id: recordId,
   hours: v.optional(v.number()),
-  issueId: v.optional(v.number()),
-  projectId: v.optional(v.number()),
+  issueId: v.optional(recordId),
+  projectId: v.optional(recordId),
   spentOn: v.optional(v.string()),
-  activityId: v.optional(v.number()),
+  activityId: v.optional(recordId),
   comments: v.optional(v.string()),
 });
 
 export const deleteInput = v.strictObject({
   action: v.literal("delete"),
-  id: v.number(),
+  id: recordId,
 });
 
 /** Every time-entry-tool argument shape, discriminated by `action`. */

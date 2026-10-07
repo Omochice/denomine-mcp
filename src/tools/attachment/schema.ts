@@ -1,4 +1,5 @@
 import * as v from "@valibot/valibot";
+import { recordId } from "../record-id.ts";
 import type { Mode } from "../mode.ts";
 
 const path = v.pipe(
@@ -26,12 +27,12 @@ const maxSize = v.optional(
 
 export const showInput = v.strictObject({
   action: v.literal("show"),
-  id: v.number(),
+  id: recordId,
 });
 
 export const downloadInput = v.strictObject({
   action: v.literal("download"),
-  id: v.number(),
+  id: recordId,
   path,
   maxSize,
 });
