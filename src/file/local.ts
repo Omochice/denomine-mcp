@@ -56,18 +56,12 @@ export class LocalFile implements FilePort {
   }
 
   async open(path: string): Promise<FileResult<LocalContent>> {
-    let file: Deno.FsFile;
+    let file: Deno.FsFile | undefined;
     try {
       file = await Deno.open(path, { read: true });
-    } catch (error) {
-      return Result.fail(toError(error));
-    }
-
-    try {
       const info = await file.stat();
       if (!info.isFile) {
-        file.close();
-        return Result.fail(new Error(`${path} is not a regular file`));
+        throw new Error(`${path} is not a regular file`);
       }
       return Result.succeed({
         filename: basename(path),
@@ -75,7 +69,7 @@ export class LocalFile implements FilePort {
         body: file.readable,
       });
     } catch (error) {
-      file.close();
+      file?.close();
       return Result.fail(toError(error));
     }
   }
