@@ -77,7 +77,7 @@ const dateFilter = v.union([
   ),
 ]);
 
-export const listInput = v.object({
+export const listInput = v.strictObject({
   action: v.literal("list"),
   include: v.optional(
     describe(
@@ -100,7 +100,7 @@ export const listInput = v.object({
   limit: v.optional(v.number()),
 });
 
-export const showInput = v.object({
+export const showInput = v.strictObject({
   action: v.literal("show"),
   id: v.number(),
   include: v.optional(
@@ -121,7 +121,7 @@ export const showInput = v.object({
   ),
 });
 
-export const createInput = v.object({
+export const createInput = v.strictObject({
   action: v.literal("create"),
   projectId: v.number(),
   trackerId: v.number(),
@@ -148,7 +148,7 @@ export const createInput = v.object({
   estimatedHours: v.optional(v.number()),
 });
 
-export const updateInput = v.object({
+export const updateInput = v.strictObject({
   action: v.literal("update"),
   id: v.number(),
   subject: v.optional(v.string()),
@@ -204,7 +204,7 @@ export const updateInput = v.object({
   privateNotes: v.optional(v.boolean()),
 });
 
-export const deleteInput = v.object({
+export const deleteInput = v.strictObject({
   action: v.literal("delete"),
   id: v.number(),
 });
@@ -223,21 +223,21 @@ const editedNote = describe(
 // to-json-schema cannot convert a v.check. The second forbids `notes` so a call
 // whose `notes` is not a string does not fall through to it and lose `notes`
 // silently.
-export const updateNoteTextInput = v.object({
+export const updateNoteTextInput = v.strictObject({
   action: v.literal("updateNote"),
   journalId,
   notes: editedNote,
   privateNotes: v.optional(v.boolean()),
 });
 
-export const updateNoteVisibilityInput = v.object({
+export const updateNoteVisibilityInput = v.strictObject({
   action: v.literal("updateNote"),
   journalId,
   notes: v.optional(v.never()),
   privateNotes: v.boolean(),
 });
 
-export const deleteNoteInput = v.object({
+export const deleteNoteInput = v.strictObject({
   action: v.literal("deleteNote"),
   journalId,
 });

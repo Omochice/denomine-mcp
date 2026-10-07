@@ -1,15 +1,15 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
 
-export const listTimeEntryActivitiesInput = v.object({
+export const listTimeEntryActivitiesInput = v.strictObject({
   action: v.literal("listTimeEntryActivities"),
 });
 
-export const listIssuePrioritiesInput = v.object({
+export const listIssuePrioritiesInput = v.strictObject({
   action: v.literal("listIssuePriorities"),
 });
 
-export const listDocumentCategoriesInput = v.object({
+export const listDocumentCategoriesInput = v.strictObject({
   action: v.literal("listDocumentCategories"),
 });
 

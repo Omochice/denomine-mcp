@@ -559,6 +559,55 @@ Deno.test("an argument validation error names the offending field as the model s
   }
 });
 
+Deno.test("a misspelled field is rejected instead of being dropped from the call", async () => {
+  const client = await connect("full");
+  try {
+    const result = await client.callTool({
+      name: "redmine_issues",
+      arguments: { list: { projectID: "denomine" } },
+    }) as CallResult;
+    expect(result.isError).toBe(true);
+    const failure = JSON.parse(textOf(result)) as { errors: string[] };
+    expect(failure.errors.join("\n")).toContain(
+      "invalid arguments: list.projectID: Invalid key",
+    );
+  } finally {
+    await client.close();
+  }
+});
+
+Deno.test("every advertised action of every tool declares that it takes no other fields", async () => {
+  const tools = registeredTools({
+    endpoint: "https://redmine.invalid",
+    apiKey: "unused",
+  });
+  for (const mode of modes) {
+    const client = await connectTools(tools, mode);
+    try {
+      const listed = await client.listTools();
+      for (const tool of listed.tools) {
+        const actions = tool.inputSchema.properties as Record<
+          string,
+          { additionalProperties?: boolean; anyOf?: unknown[] }
+        >;
+        for (const [action, schema] of Object.entries(actions)) {
+          const branches = (schema.anyOf ?? [schema]) as {
+            additionalProperties?: boolean;
+          }[];
+          for (const branch of branches) {
+            expect(
+              branch.additionalProperties,
+              `${mode} ${tool.name} ${action}`,
+            ).toBe(false);
+          }
+        }
+      }
+    } finally {
+      await client.close();
+    }
+  }
+});
+
 Deno.test("an unknown action is reported without a field path the model never sent", async () => {
   const client = await connect("readonly");
   try {
@@ -586,7 +635,7 @@ Deno.test("an action key cannot be overridden by an action field inside its argu
   try {
     const result = await client.callTool({
       name: "redmine_issues",
-      arguments: { list: { action: "delete", id: 1 } },
+      arguments: { list: { action: "delete" } },
     }) as CallResult;
     expect(result.isError).not.toBe(true);
     expect(JSON.parse(textOf(result))).toStrictEqual({ issues: [] });
