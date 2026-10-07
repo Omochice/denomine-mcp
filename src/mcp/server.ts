@@ -7,7 +7,8 @@ import {
 import * as v from "@valibot/valibot";
 import type { Mode } from "../tools/mode.ts";
 import type { ToolResponse } from "../tools/response.ts";
-import { toObjectSchema, type ToolModule } from "./tool.ts";
+import { Result } from "@praha/byethrow";
+import { fromActionKeyed, toObjectSchema, type ToolModule } from "./tool.ts";
 import { VERSION } from "../version.ts";
 
 /**
@@ -22,12 +23,15 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
     { capabilities: { tools: {} } },
   );
   const byName = new Map(tools.map((tool) => [tool.name, tool]));
+  const advertised = new Map(
+    tools.map((tool) => [tool.name, toObjectSchema(tool.schema(mode))]),
+  );
 
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: tools.map((tool) => ({
       name: tool.name,
       description: tool.description(mode),
-      inputSchema: toObjectSchema(tool.schema(mode)),
+      inputSchema: advertised.get(tool.name),
     })),
   }));
 
@@ -40,10 +44,14 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
           toolError(`unknown tool: ${request.params.name}`),
         );
       }
-      const parsed = v.safeParse(
-        tool.schema(mode),
+      const tagged = fromActionKeyed(
         request.params.arguments ?? {},
+        Object.keys(advertised.get(tool.name)?.properties ?? {}),
       );
+      if (Result.isFailure(tagged)) {
+        return Promise.resolve(toolError(`invalid arguments: ${tagged.error}`));
+      }
+      const parsed = v.safeParse(tool.schema(mode), tagged.value);
       if (!parsed.success) {
         return Promise.resolve(
           toolError(

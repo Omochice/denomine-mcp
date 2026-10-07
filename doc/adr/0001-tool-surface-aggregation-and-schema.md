@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — 2026-07-12. Consolidates the former ADRs 0001 (endpoint aggregation), 0002 (`--readonly`), and 0009 (valibot schema).
+Accepted (refined by [ADR-0015](./0015-design-evolution-from-0001.md)) — 2026-07-12. Consolidates the former ADRs 0001 (endpoint aggregation), 0002 (`--readonly`), and 0009 (valibot schema).
 
 ## Context
 

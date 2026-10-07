@@ -20,6 +20,7 @@ export function attachmentTool(
     description: () =>
       dedent`
         Reads Redmine attachments: \`show\` returns the metadata of one attachment, and \`download\` saves its content to a local file.
+        Pass exactly one key, \`show\` or \`download\`, whose value is an object of its arguments: \`{"show": {"id": 1}}\`.
         Call \`show\` first to inspect \`filesize\` and \`contentType\`, since the content is never returned inline.
         \`download\` takes \`path\`, the destination file path to write (absolute is recommended); it never overwrites a file that already exists, and answers with the path it wrote plus the filename, content type, and size.
         \`maxSize\` bounds how many bytes may be written, 500 MiB by default; pass a smaller limit when the attachment should be refused above it, reading \`filesize\` from \`show\` to choose one.

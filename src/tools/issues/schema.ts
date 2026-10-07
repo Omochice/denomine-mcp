@@ -220,8 +220,9 @@ const editedNote = describe(
 );
 
 // "At least one of notes and privateNotes" is spelled as two branches because
-// to-json-schema cannot convert a v.check. The second forbids `notes` so the
-// advertised oneOf branches stay disjoint.
+// to-json-schema cannot convert a v.check. The second forbids `notes` so a call
+// whose `notes` is not a string does not fall through to it and lose `notes`
+// silently.
 export const updateNoteTextInput = v.object({
   action: v.literal("updateNote"),
   journalId,

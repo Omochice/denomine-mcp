@@ -250,18 +250,25 @@ Deno.test("the :date_past fields reject future-looking filters", () => {
 type Branch = {
   type?: string;
   description?: string;
-  properties?: { action?: { const?: unknown } };
 };
 
 type Property = { description?: string; anyOf?: Branch[] };
 
-function propertiesOf(action: string): Record<string, Property> {
+type AdvertisedAction = {
+  properties?: Record<string, Property>;
+  anyOf?: AdvertisedAction[];
+};
+
+function advertisedAction(action: string): AdvertisedAction {
   const json = toObjectSchema(issueInputSchema("full"));
-  const branch = (json.oneOf as Branch[])
-    .find((branch) => branch.properties?.action?.const === action);
-  expect(branch, `the ${action} action should be advertised`).toBeDefined();
-  return (branch as unknown as { properties: Record<string, Property> })
-    .properties;
+  const advertised = json.properties[action] as AdvertisedAction | undefined;
+  expect(advertised, `the ${action} action should be advertised`)
+    .toBeDefined();
+  return advertised as AdvertisedAction;
+}
+
+function propertiesOf(action: string): Record<string, Property> {
+  return advertisedAction(action).properties ?? {};
 }
 
 Deno.test("the date filters survive the JSON Schema the server advertises", () => {
@@ -361,10 +368,6 @@ Deno.test("updateNote accepts privateNotes alone so a comment can be hidden with
   expect(v.parse(issueInputSchema("full"), input)).toStrictEqual(input);
 });
 
-Deno.test("updateNote is advertised once in the action enum although it has two branches", () => {
-  const actions = toObjectSchema(issueInputSchema("full")).properties
-    .action as { enum: string[] };
-  expect(actions.enum.filter((action) => action === "updateNote")).toHaveLength(
-    1,
-  );
+Deno.test("updateNote is advertised as one action holding both of its branches", () => {
+  expect(advertisedAction("updateNote").anyOf).toHaveLength(2);
 });
