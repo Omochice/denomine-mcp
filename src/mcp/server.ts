@@ -6,7 +6,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import * as v from "@valibot/valibot";
 import type { Mode } from "../tools/mode.ts";
-import type { ToolResponse } from "../tools/response.ts";
+import { type ToolResponse, toToolResponse } from "../tools/response.ts";
 import { Result } from "@praha/byethrow";
 import { fromActionKeyed, toObjectSchema, type ToolModule } from "./tool.ts";
 import { VERSION } from "../version.ts";
@@ -41,7 +41,7 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
       const tool = byName.get(request.params.name);
       if (tool == null) {
         return Promise.resolve(
-          toolError(`unknown tool: ${request.params.name}`),
+          argumentError([`unknown tool: ${request.params.name}`]),
         );
       }
       const tagged = fromActionKeyed(
@@ -49,15 +49,15 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
         Object.keys(advertised.get(tool.name)?.properties ?? {}),
       );
       if (Result.isFailure(tagged)) {
-        return Promise.resolve(toolError(`invalid arguments: ${tagged.error}`));
+        return Promise.resolve(
+          argumentError([`invalid arguments: ${tagged.error}`]),
+        );
       }
       const parsed = v.safeParse(tool.schema(mode), tagged.value);
       if (!parsed.success) {
         return Promise.resolve(
-          toolError(
-            `invalid arguments: ${
-              parsed.issues.map((issue) => issue.message).join("; ")
-            }`,
+          argumentError(
+            parsed.issues.map((issue) => `invalid arguments: ${issue.message}`),
           ),
         );
       }
@@ -68,6 +68,6 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
   return server;
 }
 
-function toolError(message: string): ToolResponse {
-  return { content: [{ type: "text", text: message }], isError: true };
+function argumentError(errors: string[]): ToolResponse {
+  return toToolResponse(Result.fail({ status: 0, errors }));
 }
