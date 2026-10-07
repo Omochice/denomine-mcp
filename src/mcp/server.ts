@@ -8,7 +8,12 @@ import * as v from "@valibot/valibot";
 import type { Mode } from "../tools/mode.ts";
 import { type ToolResponse, toToolResponse } from "../tools/response.ts";
 import { Result } from "@praha/byethrow";
-import { fromActionKeyed, toObjectSchema, type ToolModule } from "./tool.ts";
+import {
+  describeIssue,
+  fromActionKeyed,
+  toObjectSchema,
+  type ToolModule,
+} from "./tool.ts";
 import { VERSION } from "../version.ts";
 
 /**
@@ -57,7 +62,9 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
       if (!parsed.success) {
         return Promise.resolve(
           argumentError(
-            parsed.issues.map((issue) => `invalid arguments: ${issue.message}`),
+            parsed.issues.map((issue) =>
+              `invalid arguments: ${describeIssue(tagged.value.action, issue)}`
+            ),
           ),
         );
       }

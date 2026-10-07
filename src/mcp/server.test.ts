@@ -532,6 +532,55 @@ Deno.test("calls rejected before reaching Redmine report the same status-and-err
   }
 });
 
+Deno.test("an argument validation error names the offending field as the model sent it", async () => {
+  const client = await connect("full");
+  try {
+    for (
+      const [args, expected] of [
+        [
+          { show: { id: "one" } },
+          'show.id: Invalid type: Expected number but received "one"',
+        ],
+        [{ show: {} }, "show.id: Invalid key"],
+      ] as const
+    ) {
+      const result = await client.callTool({
+        name: "redmine_issues",
+        arguments: args,
+      }) as CallResult;
+      expect(result.isError, JSON.stringify(args)).toBe(true);
+      const failure = JSON.parse(textOf(result)) as { errors: string[] };
+      expect(failure.errors.join("\n"), JSON.stringify(args)).toContain(
+        `invalid arguments: ${expected}`,
+      );
+    }
+  } finally {
+    await client.close();
+  }
+});
+
+Deno.test("an unknown action is reported without a field path the model never sent", async () => {
+  const client = await connect("readonly");
+  try {
+    for (const args of [{ delete: { id: 1 } }, { nope: {} }]) {
+      const result = await client.callTool({
+        name: "redmine_issues",
+        arguments: args,
+      }) as CallResult;
+      expect(result.isError, JSON.stringify(args)).toBe(true);
+      const failure = JSON.parse(textOf(result)) as { errors: string[] };
+      expect(failure.errors.join("\n"), JSON.stringify(args)).not.toContain(
+        ".action",
+      );
+      expect(failure.errors.join("\n"), JSON.stringify(args)).toContain(
+        "invalid arguments: Invalid type",
+      );
+    }
+  } finally {
+    await client.close();
+  }
+});
+
 Deno.test("an action key cannot be overridden by an action field inside its arguments", async () => {
   const client = await connect("readonly");
   try {
