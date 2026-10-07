@@ -66,8 +66,10 @@ export function buildServer(tools: ToolModule[], mode: Mode): Server {
       if (!parsed.success) {
         return Promise.resolve(
           argumentError(
-            parsed.issues.map((issue) =>
-              `invalid arguments: ${describeIssue(tagged.value.action, issue)}`
+            parsed.issues.flatMap((issue) =>
+              describeIssue(tagged.value.action, issue).map((message) =>
+                `invalid arguments: ${message}`
+              )
             ),
           ),
         );

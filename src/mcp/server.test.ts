@@ -593,6 +593,47 @@ Deno.test("a misspelled field is rejected instead of being dropped from the call
   }
 });
 
+Deno.test("a field that matches none of its forms names the nested fields that failed", async () => {
+  const client = await connect("full");
+  const errorsOf = async (createdOn: unknown) => {
+    const result = await client.callTool({
+      name: "redmine_issues",
+      arguments: { list: { createdOn } },
+    }) as CallResult;
+    expect(result.isError).toBe(true);
+    return (JSON.parse(textOf(result)) as { errors: string[] }).errors;
+  };
+  try {
+    expect(await errorsOf({ from: "2026-01-01", to: "x" })).toStrictEqual([
+      'invalid arguments: list.createdOn.to: Invalid date: Received "x"',
+    ]);
+    const misspelled = await errorsOf({ form: "2026-01-01" });
+    expect(misspelled).toContain(
+      'invalid arguments: list.createdOn.form: Invalid key: Expected never but received "form"',
+    );
+    expect(misspelled.join("\n")).not.toContain("but received Object");
+  } finally {
+    await client.close();
+  }
+});
+
+Deno.test("a field whose type matches none of its forms keeps the list of forms", async () => {
+  const client = await connect("full");
+  try {
+    const result = await client.callTool({
+      name: "redmine_issues",
+      arguments: { list: { createdOn: 3 } },
+    }) as CallResult;
+    const { errors } = JSON.parse(textOf(result)) as { errors: string[] };
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain(
+      "invalid arguments: list.createdOn: Invalid type: Expected (string",
+    );
+  } finally {
+    await client.close();
+  }
+});
+
 Deno.test("every advertised action of every tool declares that it takes no other fields", async () => {
   const tools = registeredTools({
     endpoint: "https://redmine.invalid",

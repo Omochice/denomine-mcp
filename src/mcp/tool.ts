@@ -125,17 +125,27 @@ export function fromActionKeyed(
  * Describes a validation issue of a tagged input, naming the offending field
  * by its path in the advertised `{ <action>: { ...fields } }` shape.
  *
- * @returns The issue message, prefixed with the field path when the issue has one.
+ * A union whose object forms failed on their fields is described by those
+ * fields rather than by the list of forms.
+ *
+ * @returns One message per failed field, prefixed with its path when it has one.
  */
 export function describeIssue(
   action: string,
   issue: v.BaseIssue<unknown>,
-): string {
+): string[] {
   const path = v.getDotPath(issue);
   if (path == null || path === "action") {
-    return issue.message;
+    return [issue.message];
   }
-  return `${action}.${path}: ${issue.message}`;
+  const nested = (issue.issues ?? []).flatMap((sub) => {
+    const subPath = v.getDotPath(sub);
+    return subPath == null ? [] : [`${subPath}: ${sub.message}`];
+  });
+  if (nested.length === 0) {
+    return [`${action}.${path}: ${issue.message}`];
+  }
+  return [...new Set(nested)].map((message) => `${action}.${path}.${message}`);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
