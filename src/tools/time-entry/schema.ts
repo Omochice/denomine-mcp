@@ -1,7 +1,7 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
 
-export const listInput = v.object({
+export const listInput = v.strictObject({
   action: v.literal("list"),
   projectId: v.optional(v.number()),
   userId: v.optional(v.number()),
@@ -10,12 +10,12 @@ export const listInput = v.object({
   to: v.optional(v.string()),
 });
 
-export const showInput = v.object({
+export const showInput = v.strictObject({
   action: v.literal("show"),
   id: v.number(),
 });
 
-export const createInput = v.object({
+export const createInput = v.strictObject({
   action: v.literal("create"),
   hours: v.number(),
   issueId: v.optional(v.number()),
@@ -25,7 +25,7 @@ export const createInput = v.object({
   comments: v.optional(v.string()),
 });
 
-export const updateInput = v.object({
+export const updateInput = v.strictObject({
   action: v.literal("update"),
   id: v.number(),
   hours: v.optional(v.number()),
@@ -36,7 +36,7 @@ export const updateInput = v.object({
   comments: v.optional(v.string()),
 });
 
-export const deleteInput = v.object({
+export const deleteInput = v.strictObject({
   action: v.literal("delete"),
   id: v.number(),
 });

@@ -11,17 +11,17 @@ const sharing = v.picklist([
   "system",
 ]);
 
-export const listInput = v.object({
+export const listInput = v.strictObject({
   action: v.literal("list"),
   projectId: projectRef,
 });
 
-export const showInput = v.object({
+export const showInput = v.strictObject({
   action: v.literal("show"),
   id: v.number(),
 });
 
-export const createInput = v.object({
+export const createInput = v.strictObject({
   action: v.literal("create"),
   projectId: projectRef,
   name: v.string(),
@@ -32,7 +32,7 @@ export const createInput = v.object({
   wikiPageTitle: v.optional(v.string()),
 });
 
-export const updateInput = v.object({
+export const updateInput = v.strictObject({
   action: v.literal("update"),
   id: v.number(),
   name: v.optional(v.string()),
@@ -43,7 +43,7 @@ export const updateInput = v.object({
   wikiPageTitle: v.optional(v.string()),
 });
 
-export const deleteInput = v.object({
+export const deleteInput = v.strictObject({
   action: v.literal("delete"),
   id: v.number(),
 });

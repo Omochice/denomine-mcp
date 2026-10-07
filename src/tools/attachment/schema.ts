@@ -24,12 +24,12 @@ const maxSize = v.optional(
   defaultMaxSize,
 );
 
-export const showInput = v.object({
+export const showInput = v.strictObject({
   action: v.literal("show"),
   id: v.number(),
 });
 
-export const downloadInput = v.object({
+export const downloadInput = v.strictObject({
   action: v.literal("download"),
   id: v.number(),
   path,

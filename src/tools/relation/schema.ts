@@ -13,17 +13,17 @@ const relationType = v.picklist([
   "copied_from",
 ]);
 
-export const listInput = v.object({
+export const listInput = v.strictObject({
   action: v.literal("list"),
   issueId: v.number(),
 });
 
-export const showInput = v.object({
+export const showInput = v.strictObject({
   action: v.literal("show"),
   id: v.number(),
 });
 
-export const createInput = v.object({
+export const createInput = v.strictObject({
   action: v.literal("create"),
   issueId: v.number(),
   issueToId: v.number(),
@@ -31,7 +31,7 @@ export const createInput = v.object({
   delay: v.optional(v.number()),
 });
 
-export const deleteInput = v.object({
+export const deleteInput = v.strictObject({
   action: v.literal("delete"),
   id: v.number(),
 });

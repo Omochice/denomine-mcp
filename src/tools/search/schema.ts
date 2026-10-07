@@ -1,7 +1,7 @@
 import * as v from "@valibot/valibot";
 import type { Mode } from "../mode.ts";
 
-export const searchInput = v.object({
+export const searchInput = v.strictObject({
   action: v.literal("search"),
   q: v.string(),
   scope: v.optional(v.string()),
