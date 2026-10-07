@@ -1,6 +1,7 @@
 import { Result } from "@praha/byethrow";
 import { basename } from "@std/path";
 import type { FilePort, FileResult, LocalContent } from "./port.ts";
+import { releaseStream } from "../stream.ts";
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
@@ -56,20 +57,22 @@ export class LocalFile implements FilePort {
   }
 
   async open(path: string): Promise<FileResult<LocalContent>> {
-    let file: Deno.FsFile | undefined;
     try {
-      file = await Deno.open(path, { read: true });
+      using stack = new DisposableStack();
+      const file = stack.use(await Deno.open(path, { read: true }));
       const info = await file.stat();
       if (!info.isFile) {
         throw new Error(`${path} is not a regular file`);
       }
+      stack.move();
+      const body = file.readable;
       return Result.succeed({
         filename: basename(path),
         size: info.size,
-        body: file.readable,
+        body,
+        [Symbol.asyncDispose]: () => releaseStream(body),
       });
     } catch (error) {
-      file?.close();
       return Result.fail(toError(error));
     }
   }

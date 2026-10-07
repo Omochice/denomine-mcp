@@ -7,8 +7,11 @@ import type { Result } from "@praha/byethrow";
  */
 export type FileResult<T> = Result.Result<T, Error>;
 
-/** A local file opened for reading, with the name and size it has on disk. */
-export type LocalContent = {
+/**
+ * A local file opened for reading, with the name and size it has on disk.
+ * Disposing it releases the file whether or not the stream was read.
+ */
+export type LocalContent = AsyncDisposable & {
   filename: string;
   size: number;
   body: ReadableStream<Uint8Array>;

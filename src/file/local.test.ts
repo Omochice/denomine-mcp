@@ -8,9 +8,10 @@ const sample = fromFileUrl(new URL("./testdata/sample.txt", import.meta.url));
 Deno.test("LocalFile opens a file with its name, size, and content", async () => {
   const opened = await new LocalFile().open(sample);
   expect(Result.isSuccess(opened)).toBe(true);
-  const { body, ...metadata } = Result.unwrap(opened);
-  expect(metadata).toStrictEqual({ filename: "sample.txt", size: 19 });
-  expect(await new Response(body).text()).toBe("local file content\n");
+  await using content = Result.unwrap(opened);
+  expect(content.filename).toBe("sample.txt");
+  expect(content.size).toBe(19);
+  expect(await new Response(content.body).text()).toBe("local file content\n");
 });
 
 Deno.test("LocalFile refuses to open a directory", async () => {
@@ -25,4 +26,15 @@ Deno.test("LocalFile reports a path that does not exist", async () => {
     fromFileUrl(new URL("./testdata/missing.txt", import.meta.url)),
   );
   expect(Result.isFailure(opened)).toBe(true);
+});
+
+Deno.test("LocalFile closes a file that is disposed without being read", async () => {
+  const opened = await new LocalFile().open(sample);
+  expect(Result.isSuccess(opened)).toBe(true);
+  const content = Result.unwrap(opened);
+  await content[Symbol.asyncDispose]();
+  expect(await content.body.getReader().read()).toStrictEqual({
+    done: true,
+    value: undefined,
+  });
 });
