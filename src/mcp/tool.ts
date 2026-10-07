@@ -97,7 +97,7 @@ function merge(branches: JsonObjectSchema[]): JsonObjectSchema {
 export function fromActionKeyed(
   input: unknown,
   actions: readonly string[],
-): Result.Result<Record<string, unknown>, string> {
+): Result.Result<Record<string, unknown> & { action: string }, string> {
   const keys = isPlainObject(input) ? Object.keys(input) : [];
   if (!isPlainObject(input) || keys.length !== 1) {
     return Result.fail(
@@ -114,6 +114,23 @@ export function fromActionKeyed(
     );
   }
   return Result.succeed({ ...fields, action });
+}
+
+/**
+ * Describes a validation issue of a tagged input, naming the offending field
+ * by its path in the advertised `{ <action>: { ...fields } }` shape.
+ *
+ * @returns The issue message, prefixed with the field path when the issue has one.
+ */
+export function describeIssue(
+  action: string,
+  issue: v.BaseIssue<unknown>,
+): string {
+  const path = v.getDotPath(issue);
+  if (path == null || path === "action") {
+    return issue.message;
+  }
+  return `${action}.${path}: ${issue.message}`;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
