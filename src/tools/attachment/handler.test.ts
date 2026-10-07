@@ -184,3 +184,22 @@ Deno.test("attachment handler reports a failed attach as Redmine answered it", a
   expect(response.isError).toBe(true);
   expect(failureOf(response)).toStrictEqual({ status: 404, errors: [] });
 });
+
+Deno.test("attachment handler releases the local file whether or not the attach succeeds", async () => {
+  for (
+    const port of [
+      new FakeAttachmentPort(),
+      new FakeAttachmentPort({}, {
+        attachFailsWith: { status: 422, errors: [] },
+      }),
+    ]
+  ) {
+    const files = new FakeFilePort({ files: { "/tmp/log.txt": "hello" } });
+    await handleAttachment(port, files, {
+      action: "attach",
+      path: "/tmp/log.txt",
+      issueId: 42,
+    });
+    expect(files.released).toStrictEqual(["/tmp/log.txt"]);
+  }
+});

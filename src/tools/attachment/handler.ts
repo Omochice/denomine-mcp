@@ -71,9 +71,9 @@ async function attach(
     return localFailure(opened.error.message);
   }
 
-  const { body, size } = opened.value;
-  const filename = input.filename ?? opened.value.filename;
-  const attached = await port.attach(input.issueId, body, {
+  await using content = opened.value;
+  const filename = input.filename ?? content.filename;
+  const attached = await port.attach(input.issueId, content.body, {
     filename,
     ...(input.description == null ? {} : { description: input.description }),
     ...(input.notes == null ? {} : { notes: input.notes }),
@@ -82,6 +82,10 @@ async function attach(
     return toToolResponse(attached);
   }
   return toToolResponse(
-    Result.succeed({ issueId: input.issueId, filename, filesize: size }),
+    Result.succeed({
+      issueId: input.issueId,
+      filename,
+      filesize: content.size,
+    }),
   );
 }

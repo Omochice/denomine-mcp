@@ -15,10 +15,11 @@ export type SavedFile = {
  * the handler can be exercised without write permission (ADR-0007). The
  * recorded saves let a test assert that a failed download never reached the
  * filesystem at all, and that the byte limit arrived with it. Only the seeded
- * `files` can be opened.
+ * `files` can be opened, and each one disposed is listed in `released`.
  */
 export class FakeFilePort implements FilePort {
   readonly saved: SavedFile[] = [];
+  readonly released: string[] = [];
   readonly #failWith?: string;
   readonly #files: Map<string, string>;
 
@@ -62,7 +63,10 @@ export class FakeFilePort implements FilePort {
       filename: basename(path),
       size: bytes.byteLength,
       body,
-      [Symbol.asyncDispose]: () => releaseStream(body),
+      [Symbol.asyncDispose]: async () => {
+        this.released.push(path);
+        await releaseStream(body);
+      },
     }));
   }
 }
