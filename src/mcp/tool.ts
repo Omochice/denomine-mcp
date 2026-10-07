@@ -107,6 +107,11 @@ export function fromActionKeyed(
     );
   }
   const action = keys[0];
+  if (!actions.includes(action)) {
+    return Result.fail(
+      `unknown action \`${action}\`, one of: ${actions.join(", ")}`,
+    );
+  }
   const fields = input[action];
   if (!isPlainObject(fields)) {
     return Result.fail(
