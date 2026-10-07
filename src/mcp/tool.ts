@@ -97,7 +97,7 @@ function merge(branches: JsonObjectSchema[]): JsonObjectSchema {
 export function fromActionKeyed(
   input: unknown,
   actions: readonly string[],
-): Result.Result<Record<string, unknown>, string> {
+): Result.Result<Record<string, unknown> & { action: string }, string> {
   const keys = isPlainObject(input) ? Object.keys(input) : [];
   if (!isPlainObject(input) || keys.length !== 1) {
     return Result.fail(
