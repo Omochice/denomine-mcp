@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 # expose one drags in the sqlite-backed `db-keystore` (a ~14 MB cdylib). Its own
 # docs point anything needing more than `v1` straight at `keyring-core` plus the
 # desired stores, which is what this crate does.
-keyring-core = "=1.0.0"
+keyring-core = "=1.0.1"
 
 # The store crates are selected per target rather than per feature so that no
 # platform pulls in another platform's backend. The `cfg` expressions mirror
