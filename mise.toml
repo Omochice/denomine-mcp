@@ -1,5 +1,5 @@
 [tools]
-deno = "2.9.7"
+deno = "2.9.8"
 rust = "1.99.1"
 
 [tasks]
