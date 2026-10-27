@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/Omochice/denomine-mcp/compare/v1.1.0...v1.1.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate keyring-core to v1.0.1 ([#102](https://github.com/Omochice/denomine-mcp/issues/102)) ([9744630](https://github.com/Omochice/denomine-mcp/commit/9744630dd469667543ffcc8926caa1dced4feace))
+
 ## [1.1.0](https://github.com/Omochice/denomine-mcp/compare/v1.0.0...v1.1.0) (2026-10-07)
 
 
