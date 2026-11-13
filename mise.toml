@@ -1,6 +1,6 @@
 [tools]
 deno = "2.9.8"
-rust = "1.99.1"
+rust = "1.100.0"
 
 [tasks]
 dev = "deno task dev"
